@@ -1,0 +1,7 @@
+{
+  "name": "PharmaFlow CRM",
+  "description": "A comprehensive CRM platform for Pharmaceutical marketing teams to manage inquiries, generate quotations, and track customer follow-ups with AI-powered assistance.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
