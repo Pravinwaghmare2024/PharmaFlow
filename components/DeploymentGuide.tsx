@@ -1,12 +1,23 @@
 
 import React, { useState } from 'react';
+import { downloadFile, generateInstallationGuide } from '../utils/downloadUtils';
 
 const DeploymentGuide: React.FC = () => {
   const [os, setOs] = useState<'ubuntu' | 'iis'>('ubuntu');
+  const [downloading, setDownloading] = useState(false);
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     alert('Configuration copied to clipboard!');
+  };
+
+  const handleDownloadFullGuide = () => {
+    setDownloading(true);
+    const content = generateInstallationGuide();
+    setTimeout(() => {
+      downloadFile('PharmaFlow_Installation_Guide.txt', content);
+      setDownloading(false);
+    }, 800);
   };
 
   const nginxConfig = `server {
@@ -52,19 +63,29 @@ const DeploymentGuide: React.FC = () => {
           <h2 className="text-2xl font-bold text-slate-800">Server Configuration</h2>
           <p className="text-slate-500 text-sm">Deployment guides for production environments</p>
         </div>
-        <div className="flex bg-slate-200 p-1 rounded-xl">
+        <div className="flex items-center space-x-4">
           <button 
-            onClick={() => setOs('ubuntu')}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${os === 'ubuntu' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
+            onClick={handleDownloadFullGuide}
+            disabled={downloading}
+            className="bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-800 transition-all shadow-md flex items-center"
           >
-            Ubuntu / Nginx
+            <span className="mr-2">{downloading ? '⌛' : '📄'}</span>
+            {downloading ? 'Preparing...' : 'Download Full Guide'}
           </button>
-          <button 
-            onClick={() => setOs('iis')}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${os === 'iis' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
-          >
-            Windows / IIS
-          </button>
+          <div className="flex bg-slate-200 p-1 rounded-xl">
+            <button 
+              onClick={() => setOs('ubuntu')}
+              className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${os === 'ubuntu' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
+            >
+              Ubuntu / Nginx
+            </button>
+            <button 
+              onClick={() => setOs('iis')}
+              className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${os === 'iis' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
+            >
+              Windows / IIS
+            </button>
+          </div>
         </div>
       </div>
 
