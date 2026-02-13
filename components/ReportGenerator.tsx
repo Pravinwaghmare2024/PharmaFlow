@@ -69,57 +69,61 @@ const ReportGenerator: React.FC = () => {
   };
 
   const renderChart = () => {
-    switch(selectedReport) {
-      case 'products':
-        return (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={PRODUCT_DATA}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} />
-              <YAxis axisLine={false} tickLine={false} />
-              <Tooltip cursor={{fill: '#f8fafc'}} />
-              <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        );
-      case 'customers':
-        return (
-          <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={CUSTOMER_DISTRIBUTION}
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={5}
-                dataKey="value"
-              >
-                {CUSTOMER_DISTRIBUTION.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend verticalAlign="bottom" height={36}/>
-            </PieChart>
-          </ResponsiveContainer>
-        );
-      case 'sales':
-        return (
-          <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={SALES_TREND}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-              <XAxis dataKey="month" axisLine={false} tickLine={false} />
-              <YAxis axisLine={false} tickLine={false} />
-              <Tooltip cursor={{fill: '#f8fafc'}} />
-              <Legend />
-              <Bar dataKey="actual" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Actual Sales" />
-              <Bar dataKey="target" fill="#cbd5e1" radius={[4, 4, 0, 0]} name="Target Sales" />
-            </BarChart>
-          </ResponsiveContainer>
-        );
-      default: return null;
-    }
+    // Ensuring the container has a defined height to prevent ResponsiveContainer from collapsing to 0
+    return (
+      <div style={{ width: '100%', height: '400px', minHeight: '400px' }} className="flex items-center justify-center">
+        <ResponsiveContainer width="100%" height="100%">
+          {(() => {
+            switch(selectedReport) {
+              case 'products':
+                return (
+                  <BarChart data={PRODUCT_DATA} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b'}} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b'}} />
+                    <Tooltip cursor={{fill: '#f8fafc'}} />
+                    <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                );
+              case 'customers':
+                return (
+                  <PieChart>
+                    <Pie
+                      data={CUSTOMER_DISTRIBUTION}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={80}
+                      outerRadius={120}
+                      paddingAngle={5}
+                      dataKey="value"
+                      label
+                    >
+                      {CUSTOMER_DISTRIBUTION.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend verticalAlign="bottom" height={36}/>
+                  </PieChart>
+                );
+              case 'sales':
+                return (
+                  <BarChart data={SALES_TREND} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{fill: '#64748b'}} />
+                    <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b'}} />
+                    <Tooltip cursor={{fill: '#f8fafc'}} />
+                    <Legend />
+                    <Bar dataKey="actual" fill="#3b82f6" radius={[4, 4, 0, 0]} name="Actual Sales" />
+                    <Bar dataKey="target" fill="#cbd5e1" radius={[4, 4, 0, 0]} name="Target Sales" />
+                  </BarChart>
+                );
+              default: return <div className="text-slate-400">Select a report to view data.</div>;
+            }
+          })()}
+        </ResponsiveContainer>
+      </div>
+    );
   };
 
   return (
@@ -165,7 +169,7 @@ const ReportGenerator: React.FC = () => {
                       : 'text-slate-600 hover:bg-slate-50'
                   }`}
                 >
-                  <span>{report.icon}</span>
+                  <span className="text-xl">{report.icon}</span>
                   <span>{report.label}</span>
                 </button>
               ))}
@@ -176,8 +180,8 @@ const ReportGenerator: React.FC = () => {
             <h4 className="font-bold mb-2 flex items-center">
               <span className="mr-2">✨</span> AI Insights
             </h4>
-            <p className="text-xs text-indigo-100 mb-4">
-              Get an automated analysis of this report's findings and strategic suggestions.
+            <p className="text-xs text-indigo-100 mb-4 leading-relaxed">
+              Automated analysis of {getReportTitle().toLowerCase()} with Gemini strategic recommendations.
             </p>
             <button 
               onClick={handleGetInsight}
@@ -192,7 +196,7 @@ const ReportGenerator: React.FC = () => {
         <div className="lg:col-span-3 space-y-6">
           <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-100">
             <h3 className="text-lg font-bold text-slate-800 mb-6">{getReportTitle()}</h3>
-            <div className="bg-slate-50 rounded-xl p-6 border border-slate-100">
+            <div className="bg-slate-50 rounded-xl p-6 border border-slate-100 overflow-hidden min-h-[420px] flex items-center justify-center">
               {renderChart()}
             </div>
           </div>

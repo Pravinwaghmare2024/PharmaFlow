@@ -13,6 +13,8 @@ const AIMarketingAssist = lazy(() => import('./components/AIMarketingAssist'));
 const ReportGenerator = lazy(() => import('./components/ReportGenerator'));
 const LeadManager = lazy(() => import('./components/LeadManager'));
 const ProductCatalog = lazy(() => import('./components/ProductCatalog'));
+const ManufacturingManager = lazy(() => import('./components/ManufacturingManager'));
+const DeploymentGuide = lazy(() => import('./components/DeploymentGuide'));
 
 const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -30,6 +32,7 @@ const App: React.FC = () => {
           switch (activeTab) {
             case 'dashboard': return <Dashboard />;
             case 'leads': return <LeadManager />;
+            case 'manufacturing': return <ManufacturingManager />;
             case 'inventory': return <ProductCatalog />;
             case 'inquiries': return <InquiryManager onConvertToQuote={handleConvertToQuote} />;
             case 'quotations': return (
@@ -39,6 +42,7 @@ const App: React.FC = () => {
               />
             );
             case 'reports': return <ReportGenerator />;
+            case 'deployment': return <DeploymentGuide />;
             case 'ai-assist': return <AIMarketingAssist />;
             case 'customers': return (
               <div className="space-y-6 animate-in fade-in duration-500">
@@ -90,14 +94,14 @@ const App: React.FC = () => {
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
             <input 
               type="text" 
-              placeholder="Search inquiries, products, customers..."
+              placeholder="Search manufacturing, products, customers..."
               className="w-full bg-white border border-slate-200 rounded-xl py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm transition-all"
             />
           </div>
           <div className="flex items-center space-x-4">
             <div className="hidden md:flex flex-col text-right mr-2">
-              <span className="text-xs font-bold text-slate-800">PharmaFlow Cloud</span>
-              <span className="text-[10px] text-emerald-500 font-bold uppercase">System Online</span>
+              <span className="text-xs font-bold text-slate-800">PharmaFlow Enterprise</span>
+              <span className="text-[10px] text-emerald-500 font-bold uppercase tracking-tighter">Manufacturing Node Online</span>
             </div>
             <button className="relative w-10 h-10 flex items-center justify-center bg-white rounded-xl border border-slate-200 hover:bg-slate-50 transition-colors" aria-label="Notifications">
               <span>🔔</span>

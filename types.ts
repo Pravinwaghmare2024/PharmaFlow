@@ -16,6 +16,37 @@ export enum LeadStatus {
   LOST = 'LOST'
 }
 
+export enum BatchStatus {
+  PLANNED = 'PLANNED',
+  IN_PRODUCTION = 'IN_PRODUCTION',
+  QC_PENDING = 'QC_PENDING',
+  RELEASED = 'RELEASED',
+  REJECTED = 'REJECTED'
+}
+
+export type UnitType = 'KG' | 'BOX' | 'DRUM' | 'PACKET';
+
+export interface Batch {
+  id: string;
+  batchNumber: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  unit: UnitType;
+  status: BatchStatus;
+  manufacturingDate: string;
+  expiryDate: string;
+}
+
+export interface InventoryItem {
+  id: string;
+  name: string;
+  type: 'Raw Material' | 'Packaging' | 'Finished Good';
+  quantity: number;
+  unit: UnitType;
+  minThreshold: number;
+}
+
 export interface Comment {
   id: string;
   author: string;
