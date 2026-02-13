@@ -5,40 +5,18 @@ import { MOCK_CUSTOMERS } from '../constants';
 import { generateFollowUpEmail } from '../services/geminiService';
 
 interface InquiryManagerProps {
+  inquiries: Inquiry[];
   onConvertToQuote?: (inq: Inquiry) => void;
+  onAddInquiry: (inq: Inquiry) => void;
+  onUpdateInquiry: (inq: Inquiry) => void;
 }
 
-const INITIAL_INQUIRIES: Inquiry[] = [
-  { 
-    id: 'INQ-001', 
-    customerId: 'C1', 
-    customerName: 'St. Mary\'s General Hospital', 
-    status: InquiryStatus.NEW, 
-    date: '2023-11-20', 
-    products: ['Amoxicillin 500mg'], 
-    notes: 'Immediate requirement for ICU', 
-    assignedTo: 'John Doe',
-    followUps: [
-      { id: 'f1', date: '2023-11-20', type: 'Email', summary: 'Sent introductory catalog', outcome: 'Awaiting reply' }
-    ]
-  },
-  { 
-    id: 'INQ-002', 
-    customerId: 'C2', 
-    customerName: 'HealthFirst Pharmacy', 
-    status: InquiryStatus.FOLLOW_UP, 
-    date: '2023-11-21', 
-    products: ['Metformin 500mg', 'Paracetamol 650mg'], 
-    notes: 'Looking for bulk pricing', 
-    assignedTo: 'John Doe',
-    followUps: [
-      { id: 'f2', date: '2023-11-21', type: 'Call', summary: 'Spoke with pharmacist regarding discounts', outcome: 'Requested official quote' }
-    ]
-  },
-];
-
-const InquiryManager: React.FC<InquiryManagerProps> = ({ onConvertToQuote }) => {
-  const [inquiries, setInquiries] = useState<Inquiry[]>(INITIAL_INQUIRIES);
+const InquiryManager: React.FC<InquiryManagerProps> = ({ 
+  inquiries, 
+  onConvertToQuote, 
+  onAddInquiry, 
+  onUpdateInquiry 
+}) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null);
   const [newInquiry, setNewInquiry] = useState<Partial<Inquiry>>({ status: InquiryStatus.NEW });
@@ -65,7 +43,7 @@ const InquiryManager: React.FC<InquiryManagerProps> = ({ onConvertToQuote }) => 
       followUps: []
     };
 
-    setInquiries([inq, ...inquiries]);
+    onAddInquiry(inq);
     setShowAddModal(false);
     setNewInquiry({ status: InquiryStatus.NEW });
   };
@@ -88,20 +66,14 @@ const InquiryManager: React.FC<InquiryManagerProps> = ({ onConvertToQuote }) => 
       outcome: 'Logged interaction'
     };
 
-    const updatedInquiries = inquiries.map(inq => {
-      if (inq.id === selectedInquiry.id) {
-        return { 
-          ...inq, 
-          followUps: [...(inq.followUps || []), newLog],
-          status: InquiryStatus.FOLLOW_UP 
-        };
-      }
-      return inq;
-    });
+    const updatedInq = { 
+      ...selectedInquiry, 
+      followUps: [...(selectedInquiry.followUps || []), newLog],
+      status: InquiryStatus.FOLLOW_UP 
+    };
 
-    setInquiries(updatedInquiries);
-    const updatedSelected = updatedInquiries.find(i => i.id === selectedInquiry.id);
-    if (updatedSelected) setSelectedInquiry(updatedSelected);
+    onUpdateInquiry(updatedInq);
+    setSelectedInquiry(updatedInq);
     setLogSummary('');
   };
 
@@ -177,11 +149,18 @@ const InquiryManager: React.FC<InquiryManagerProps> = ({ onConvertToQuote }) => 
                 </td>
               </tr>
             ))}
+            {inquiries.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-6 py-12 text-center text-slate-400 italic">
+                  No inquiries found. Start by creating a new inquiry.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
 
-      {/* Inquiry Detail & Follow-up Timeline Modal */}
+      {/* Detail Modal implementation remains same... */}
       {selectedInquiry && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[110] p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -314,7 +293,7 @@ const InquiryManager: React.FC<InquiryManagerProps> = ({ onConvertToQuote }) => 
         </div>
       )}
 
-      {/* Add Inquiry Modal */}
+      {/* Add Modal */}
       {showAddModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
           <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">

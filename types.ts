@@ -1,4 +1,25 @@
 
+export enum UserRole {
+  ADMIN = 'ADMIN',
+  USER = 'USER'
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  isActive: boolean;
+  lastLogin?: string;
+  password?: string; // Added for password management
+}
+
+export interface CompanySettings {
+  name: string;
+  address: string;
+  logoUrl: string;
+}
+
 export enum InquiryStatus {
   NEW = 'NEW',
   IN_PROGRESS = 'IN_PROGRESS',

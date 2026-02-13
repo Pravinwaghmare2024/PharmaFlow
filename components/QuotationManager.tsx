@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Quotation, Comment, Attachment, Inquiry, QuotationItem } from '../types';
+import { Quotation, Comment, Attachment, Inquiry, QuotationItem, CompanySettings } from '../types';
 import { MOCK_PRODUCTS, MOCK_CUSTOMERS } from '../constants';
 import { downloadFile, generateQuotationText } from '../utils/downloadUtils';
 
@@ -36,6 +36,15 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({ prefillData, onClea
   const [selectedQuo, setSelectedQuo] = useState<Quotation | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [companyInfo, setCompanyInfo] = useState({ name: 'PharmaFlow Enterprise', address: '123 Global Biotech Park, NY' });
+
+  useEffect(() => {
+    const savedBranding = localStorage.getItem('pharmaflow_branding');
+    if (savedBranding) {
+      const parsed = JSON.parse(savedBranding);
+      setCompanyInfo({ name: parsed.name, address: parsed.address });
+    }
+  }, []);
 
   // New Quotation Form State
   const [formData, setFormData] = useState<Partial<Quotation>>({
@@ -61,7 +70,7 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({ prefillData, onClea
 
   const handleDownload = (quo: Quotation) => {
     setIsDownloading(true);
-    const content = generateQuotationText(quo);
+    const content = generateQuotationText(quo, companyInfo);
     // Simulate generation delay
     setTimeout(() => {
       downloadFile(`${quo.id}_PharmaFlow_Quote.txt`, content);

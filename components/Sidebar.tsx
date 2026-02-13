@@ -1,24 +1,29 @@
 
 import React from 'react';
+import { User, UserRole } from '../types';
 
 interface SidebarProps {
   activeTab: string;
   setActiveTab: (tab: string) => void;
+  user: User | null;
+  onLogout: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: '📊' },
-    { id: 'leads', label: 'Leads & CRM', icon: '🎯' },
-    { id: 'manufacturing', label: 'Manufacturing', icon: '🏭' },
-    { id: 'customers', label: 'Customers', icon: '🏢' },
-    { id: 'inventory', label: 'Product Catalog', icon: '💊' },
-    { id: 'inquiries', label: 'Inquiries', icon: '📨' },
-    { id: 'quotations', label: 'Quotations', icon: '📝' },
-    { id: 'reports', label: 'Reports', icon: '📋' },
-    { id: 'deployment', label: 'Server Config', icon: '⚙️' },
-    { id: 'ai-assist', label: 'AI Marketing Assist', icon: '✨' },
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onLogout }) => {
+  const allMenuItems = [
+    { id: 'dashboard', label: 'Dashboard', icon: '📊', roles: [UserRole.ADMIN, UserRole.USER] },
+    { id: 'leads', label: 'Leads & CRM', icon: '🎯', roles: [UserRole.ADMIN, UserRole.USER] },
+    { id: 'manufacturing', label: 'Manufacturing', icon: '🏭', roles: [UserRole.ADMIN] },
+    { id: 'customers', label: 'Customers', icon: '🏢', roles: [UserRole.ADMIN, UserRole.USER] },
+    { id: 'inventory', label: 'Product Catalog', icon: '💊', roles: [UserRole.ADMIN, UserRole.USER] },
+    { id: 'inquiries', label: 'Inquiries', icon: '📨', roles: [UserRole.ADMIN, UserRole.USER] },
+    { id: 'quotations', label: 'Quotations', icon: '📝', roles: [UserRole.ADMIN, UserRole.USER] },
+    { id: 'reports', label: 'Reports', icon: '📋', roles: [UserRole.ADMIN] },
+    { id: 'ai-assist', label: 'AI Marketing Assist', icon: '✨', roles: [UserRole.ADMIN, UserRole.USER] },
+    { id: 'admin', label: 'Admin Panel', icon: '🛡️', roles: [UserRole.ADMIN] },
   ];
+
+  const filteredItems = allMenuItems.filter(item => user && item.roles.includes(user.role));
 
   return (
     <div className="w-64 bg-slate-900 h-screen text-white flex flex-col fixed left-0 top-0 shadow-xl z-50">
@@ -28,7 +33,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
       </div>
       <nav className="flex-1 mt-6 px-4 overflow-y-auto">
         <ul className="space-y-2">
-          {menuItems.map((item) => (
+          {filteredItems.map((item) => (
             <li key={item.id}>
               <button
                 onClick={() => setActiveTab(item.id)}
@@ -45,14 +50,22 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab }) => {
           ))}
         </ul>
       </nav>
-      <div className="p-6 border-t border-slate-800">
+      <div className="p-6 border-t border-slate-800 space-y-4">
         <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-bold">JD</div>
-          <div>
-            <p className="text-sm font-medium">John Doe</p>
-            <p className="text-xs text-slate-400">System Admin</p>
+          <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center font-bold">
+            {user?.name.charAt(0)}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium truncate">{user?.name}</p>
+            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">{user?.role}</p>
           </div>
         </div>
+        <button 
+          onClick={onLogout}
+          className="w-full text-left px-4 py-2 text-xs font-bold text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+        >
+          ✕ Sign Out
+        </button>
       </div>
     </div>
   );

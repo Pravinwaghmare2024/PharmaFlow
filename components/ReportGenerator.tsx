@@ -69,9 +69,8 @@ const ReportGenerator: React.FC = () => {
   };
 
   const renderChart = () => {
-    // Ensuring the container has a defined height to prevent ResponsiveContainer from collapsing to 0
     return (
-      <div style={{ width: '100%', height: '400px', minHeight: '400px' }} className="flex items-center justify-center">
+      <div className="w-full h-[400px] min-h-[400px] flex items-center justify-center relative bg-white rounded-xl overflow-hidden">
         <ResponsiveContainer width="100%" height="100%">
           {(() => {
             switch(selectedReport) {
@@ -141,9 +140,6 @@ const ReportGenerator: React.FC = () => {
           >
             {isExporting ? '📥 Generating...' : '📥 Export Data'}
           </button>
-          <button className="bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg font-medium hover:bg-slate-50 transition-colors shadow-sm text-sm">
-            📧 Email Report
-          </button>
         </div>
       </div>
 
@@ -181,7 +177,7 @@ const ReportGenerator: React.FC = () => {
               <span className="mr-2">✨</span> AI Insights
             </h4>
             <p className="text-xs text-indigo-100 mb-4 leading-relaxed">
-              Automated analysis of {getReportTitle().toLowerCase()} with Gemini strategic recommendations.
+              Automated analysis with Gemini strategic recommendations.
             </p>
             <button 
               onClick={handleGetInsight}
@@ -196,7 +192,7 @@ const ReportGenerator: React.FC = () => {
         <div className="lg:col-span-3 space-y-6">
           <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-100">
             <h3 className="text-lg font-bold text-slate-800 mb-6">{getReportTitle()}</h3>
-            <div className="bg-slate-50 rounded-xl p-6 border border-slate-100 overflow-hidden min-h-[420px] flex items-center justify-center">
+            <div className="bg-slate-50 rounded-xl p-6 border border-slate-100 overflow-hidden min-h-[420px]">
               {renderChart()}
             </div>
           </div>

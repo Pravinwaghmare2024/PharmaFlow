@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { downloadFile, generateInstallationGuide } from '../utils/downloadUtils';
 
 const DeploymentGuide: React.FC = () => {
-  const [os, setOs] = useState<'ubuntu' | 'iis'>('ubuntu');
+  const [os, setOs] = useState<'ubuntu' | 'iis'>('iis');
   const [downloading, setDownloading] = useState(false);
 
   const copyToClipboard = (text: string) => {
@@ -20,21 +20,6 @@ const DeploymentGuide: React.FC = () => {
     }, 800);
   };
 
-  const nginxConfig = `server {
-    listen 80;
-    server_name pharma-flow.yourdomain.com;
-    root /var/www/pharma-flow/dist;
-    index index.html;
-
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Enable Gzip compression for faster delivery
-    gzip on;
-    gzip_types text/plain text/css application/json application/javascript text/xml;
-}`;
-
   const iisConfig = `<?xml version="1.0" encoding="UTF-8"?>
 <configuration>
   <system.webServer>
@@ -45,23 +30,33 @@ const DeploymentGuide: React.FC = () => {
           <conditions logicalGrouping="MatchAll">
             <add input="{REQUEST_FILENAME}" matchType="IsFile" negate="true" />
             <add input="{REQUEST_FILENAME}" matchType="IsDirectory" negate="true" />
+            <add input="{REQUEST_URI}" pattern=".*\\.(js|mjs|css|json|png|jpg|jpeg|gif|ico|woff|woff2|svg)" negate="true" />
           </conditions>
-          <action type="Rewrite" url="/" />
+          <action type="Rewrite" url="index.html" />
         </rule>
       </rules>
     </rewrite>
     <staticContent>
+      <remove fileExtension=".json" />
       <mimeMap fileExtension=".json" mimeType="application/json" />
+      <remove fileExtension=".js" />
+      <mimeMap fileExtension=".js" mimeType="application/javascript" />
+      <remove fileExtension=".mjs" />
+      <mimeMap fileExtension=".mjs" mimeType="application/javascript" />
+      <remove fileExtension=".woff" />
+      <mimeMap fileExtension=".woff" mimeType="font/woff" />
+      <remove fileExtension=".woff2" />
+      <mimeMap fileExtension=".woff2" mimeType="font/woff2" />
     </staticContent>
   </system.webServer>
 </configuration>`;
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">Server Configuration</h2>
-          <p className="text-slate-500 text-sm">Deployment guides for production environments</p>
+          <h2 className="text-2xl font-bold text-slate-800">Deployment Center</h2>
+          <p className="text-slate-500 text-sm">Enterprise setup and local server installation</p>
         </div>
         <div className="flex items-center space-x-4">
           <button 
@@ -70,158 +65,81 @@ const DeploymentGuide: React.FC = () => {
             className="bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-slate-800 transition-all shadow-md flex items-center"
           >
             <span className="mr-2">{downloading ? '⌛' : '📄'}</span>
-            {downloading ? 'Preparing...' : 'Download Full Guide'}
+            {downloading ? 'Preparing...' : 'Download Full Instructions'}
           </button>
           <div className="flex bg-slate-200 p-1 rounded-xl">
-            <button 
-              onClick={() => setOs('ubuntu')}
-              className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${os === 'ubuntu' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
-            >
-              Ubuntu / Nginx
-            </button>
             <button 
               onClick={() => setOs('iis')}
               className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${os === 'iis' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
             >
-              Windows / IIS
+              Windows (IIS)
+            </button>
+            <button 
+              onClick={() => setOs('ubuntu')}
+              className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${os === 'ubuntu' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
+            >
+              Linux (Nginx)
             </button>
           </div>
         </div>
       </div>
 
-      {os === 'ubuntu' ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-              <h3 className="text-lg font-bold text-slate-800 mb-4">1. Environment Setup</h3>
-              <div className="space-y-4">
-                <p className="text-sm text-slate-600">Update packages and install Nginx and Node.js:</p>
-                <div className="bg-slate-900 rounded-xl p-4 font-mono text-xs text-blue-400 space-y-2">
-                  <p>sudo apt update && sudo apt upgrade -y</p>
-                  <p>sudo apt install nginx -y</p>
-                  <p>curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -</p>
-                  <p>sudo apt-get install -y nodejs</p>
+      {os === 'iis' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8 space-y-8">
+            <div className="relative space-y-8 before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-200 before:to-transparent">
+              <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-blue-600 text-white font-bold shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">1</div>
+                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                  <div className="font-bold text-slate-800 mb-2">Phase 1: Terminal Build</div>
+                  <div className="bg-slate-900 rounded-xl p-3 font-mono text-xs text-emerald-400">npm run build</div>
                 </div>
               </div>
-            </section>
 
-            <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-bold text-slate-800">2. Nginx Configuration</h3>
-                <button 
-                  onClick={() => copyToClipboard(nginxConfig)}
-                  className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg hover:bg-blue-100"
-                >
-                  Copy Config
-                </button>
+              <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-blue-600 text-white font-bold shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10">2</div>
+                <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                  <div className="font-bold text-slate-800 mb-2">Phase 2: MIME & URL Rewrite</div>
+                  <p className="text-sm text-slate-500">Ensure the web.config includes the <code className="bg-slate-100 px-1">pattern</code> exclusions for assets.</p>
+                </div>
               </div>
-              <p className="text-sm text-slate-600 mb-4">Create a new site configuration at <code className="bg-slate-100 px-1 rounded text-rose-500">/etc/nginx/sites-available/pharma-flow</code>:</p>
-              <div className="bg-slate-900 rounded-xl p-5 font-mono text-xs text-emerald-400 overflow-x-auto">
-                <pre>{nginxConfig}</pre>
-              </div>
-            </section>
+            </div>
 
-            <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-              <h3 className="text-lg font-bold text-slate-800 mb-4">3. Final Deployment</h3>
-              <div className="space-y-3 text-sm text-slate-600">
-                <p className="flex items-start"><span className="font-bold text-blue-600 mr-2">A.</span> Build the app locally: <code className="bg-slate-100 px-1 mx-1 rounded">npm run build</code></p>
-                <p className="flex items-start"><span className="font-bold text-blue-600 mr-2">B.</span> Transfer the <code className="bg-slate-100 px-1 mx-1 rounded">/dist</code> folder to <code className="bg-slate-100 px-1 mx-1 rounded">/var/www/pharma-flow</code></p>
-                <p className="flex items-start"><span className="font-bold text-blue-600 mr-2">C.</span> Enable the site: <code className="bg-slate-100 px-1 mx-1 rounded">sudo ln -s /etc/nginx/sites-available/pharma-flow /etc/nginx/sites-enabled/</code></p>
-                <p className="flex items-start"><span className="font-bold text-blue-600 mr-2">D.</span> Restart Nginx: <code className="bg-slate-100 px-1 mx-1 rounded">sudo systemctl restart nginx</code></p>
+            <section className="bg-white p-8 rounded-3xl shadow-xl border border-slate-100">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-bold text-slate-800">Hardened web.config</h3>
+                <button onClick={() => copyToClipboard(iisConfig)} className="text-xs font-bold text-blue-600 bg-blue-50 px-4 py-2 rounded-xl">Copy XML</button>
+              </div>
+              <div className="bg-slate-900 rounded-2xl p-6 font-mono text-xs text-blue-300 overflow-x-auto max-h-[400px]">
+                <pre>{iisConfig}</pre>
               </div>
             </section>
           </div>
 
-          <div className="lg:col-span-1">
-            <div className="bg-blue-600 rounded-3xl p-8 text-white shadow-xl sticky top-8">
-              <h4 className="text-xl font-bold mb-4 flex items-center">
-                <span className="mr-2">💡</span> Ubuntu Tips
+          <div className="lg:col-span-4 space-y-6">
+            <div className="bg-rose-50 border border-rose-100 p-8 rounded-3xl shadow-sm">
+              <h4 className="text-rose-800 font-bold mb-4 flex items-center">
+                <span className="mr-2 text-xl">🚀</span> Critical: Fix Blank Tabs
               </h4>
-              <ul className="space-y-4 text-sm opacity-90">
-                <li className="flex items-start">
-                  <div className="w-1.5 h-1.5 bg-white rounded-full mt-1.5 mr-2 shrink-0"></div>
-                  <span>Use <strong>Certbot</strong> for automatic SSL: <code className="bg-white/10 px-1 rounded">sudo apt install python3-certbot-nginx</code></span>
-                </li>
-                <li className="flex items-start">
-                  <div className="w-1.5 h-1.5 bg-white rounded-full mt-1.5 mr-2 shrink-0"></div>
-                  <span>Check Nginx logs for errors at <code className="bg-white/10 px-1 rounded">/var/log/nginx/error.log</code></span>
-                </li>
-                <li className="flex items-start">
-                  <div className="w-1.5 h-1.5 bg-white rounded-full mt-1.5 mr-2 shrink-0"></div>
-                  <span>Ensure firewall allows port 80/443: <code className="bg-white/10 px-1 rounded">sudo ufw allow 'Nginx Full'</code></span>
-                </li>
-              </ul>
+              <div className="space-y-4">
+                <div className="p-4 bg-white rounded-2xl border border-rose-100 shadow-sm">
+                  <p className="text-[11px] font-bold text-rose-900 uppercase mb-1">Diagnosis Steps</p>
+                  <ul className="text-xs text-slate-600 space-y-2 list-decimal pl-4">
+                    <li>Open your site in Chrome.</li>
+                    <li>Press <strong>F12</strong> and go to the <strong>Console</strong> tab.</li>
+                    <li>Click the "Report" or "Inquiries" tab.</li>
+                    <li>If you see <code className="bg-rose-50 text-rose-600 font-bold">Unexpected token '&lt;'</code>, your rewrite rule is wrong. Copy the XML on the left.</li>
+                    <li>If you see <code className="bg-rose-50 text-rose-600 font-bold">404 (Not Found)</code>, check your file permissions on the IIS folder.</li>
+                  </ul>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-6">
-            <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-              <h3 className="text-lg font-bold text-slate-800 mb-4">1. Prerequisite: URL Rewrite</h3>
-              <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-                PharmaFlow CRM is a Single Page Application (SPA). For routing to work on IIS, you <strong>must</strong> install the 
-                <a href="https://www.iis.net/downloads/microsoft/url-rewrite" target="_blank" className="text-blue-600 font-bold mx-1 hover:underline">URL Rewrite Module</a>.
-              </p>
-              <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                <p className="text-xs text-amber-800 font-medium">Without this module, reloading the page on any route other than the root will result in a 404 error.</p>
-              </div>
-            </section>
-
-            <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-bold text-slate-800">2. web.config Setup</h3>
-                <button 
-                  onClick={() => copyToClipboard(iisConfig)}
-                  className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-lg hover:bg-blue-100"
-                >
-                  Copy XML
-                </button>
-              </div>
-              <p className="text-sm text-slate-600 mb-4">Place this <code className="bg-slate-100 px-1 rounded text-rose-500">web.config</code> file in the root of your application folder:</p>
-              <div className="bg-slate-900 rounded-xl p-5 font-mono text-xs text-blue-300 overflow-x-auto">
-                <pre>{iisConfig}</pre>
-              </div>
-            </section>
-
-            <section className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
-              <h3 className="text-lg font-bold text-slate-800 mb-4">3. Application Pool Settings</h3>
-              <div className="space-y-4 text-sm text-slate-600">
-                <p>For optimal performance of the Vite-built static assets:</p>
-                <ul className="list-disc pl-5 space-y-2">
-                  <li>Set <strong>.NET CLR Version</strong> to "No Managed Code".</li>
-                  <li>Set <strong>Managed Pipeline Mode</strong> to "Integrated".</li>
-                  <li>Ensure the IIS User (IUSR) has "Read" permissions on the application folder.</li>
-                </ul>
-              </div>
-            </section>
-          </div>
-
-          <div className="lg:col-span-1">
-            <div className="bg-slate-800 rounded-3xl p-8 text-white shadow-xl sticky top-8 border-t-4 border-t-blue-500">
-              <h4 className="text-xl font-bold mb-4 flex items-center text-blue-400">
-                <span className="mr-2">🏁</span> IIS Checklist
-              </h4>
-              <div className="space-y-6">
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center font-bold text-sm">1</div>
-                  <span className="text-xs font-medium opacity-80 underline underline-offset-4 decoration-slate-600">Install URL Rewrite Module</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center font-bold text-sm">2</div>
-                  <span className="text-xs font-medium opacity-80">Copy /dist contents to physical path</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center font-bold text-sm">3</div>
-                  <span className="text-xs font-medium opacity-80">Create "web.config" in site root</span>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-full bg-slate-700 flex items-center justify-center font-bold text-sm">4</div>
-                  <span className="text-xs font-medium opacity-80">Check Static Content mappings</span>
-                </div>
-              </div>
-            </div>
-          </div>
+        <div className="bg-white p-8 rounded-3xl border border-slate-100 shadow-sm text-center py-20">
+           <h3 className="text-xl font-bold text-slate-800 mb-2">Ubuntu / Nginx Configuration</h3>
+           <button onClick={() => setOs('iis')} className="text-blue-600 font-bold hover:underline">Switch back to IIS Guide</button>
         </div>
       )}
     </div>
