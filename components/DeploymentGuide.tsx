@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { downloadFile, generateInstallationGuide } from '../utils/downloadUtils';
+/* Fix: Corrected imported function name from generateInstallationGuide to generateIisInstallationGuide */
+import { downloadFile, generateIisInstallationGuide } from '../utils/downloadUtils';
 
 const DeploymentGuide: React.FC = () => {
   const [os, setOs] = useState<'ubuntu' | 'iis'>('iis');
@@ -13,7 +14,8 @@ const DeploymentGuide: React.FC = () => {
 
   const handleDownloadFullGuide = () => {
     setDownloading(true);
-    const content = generateInstallationGuide();
+    /* Fix: Updated function call to generateIisInstallationGuide and provided a default company name */
+    const content = generateIisInstallationGuide('PharmaFlow Enterprise');
     setTimeout(() => {
       downloadFile('PharmaFlow_Installation_Guide.txt', content);
       setDownloading(false);

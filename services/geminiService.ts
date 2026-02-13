@@ -1,20 +1,13 @@
 
 import { GoogleGenAI } from "@google/genai";
 
-// Safe initialization: Prevent crash if API_KEY is undefined during chunk load
-const getAIClient = () => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) {
-    console.warn("Gemini API Key is missing. AI features will be unavailable.");
-    return null;
-  }
-  return new GoogleGenAI({ apiKey });
-};
-
-const ai = getAIClient();
+/* 
+ * Re-creating the GoogleGenAI instance inside each function ensures it always uses 
+ * the most up-to-date API key from the environment/dialog, as per guidelines.
+ */
 
 export const generateFollowUpEmail = async (customerName: string, context: string) => {
-  if (!ai) return "AI Service not configured. Please check your API key.";
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   try {
     const response = await ai.models.generateContent({
@@ -31,7 +24,7 @@ export const generateFollowUpEmail = async (customerName: string, context: strin
 };
 
 export const analyzeSalesTrends = async (dataSummary: string) => {
-  if (!ai) return "AI Service unavailable.";
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   try {
     const response = await ai.models.generateContent({
@@ -47,7 +40,7 @@ export const analyzeSalesTrends = async (dataSummary: string) => {
 };
 
 export const generateReportSummary = async (reportType: string, data: string) => {
-  if (!ai) return "AI analysis unavailable.";
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
   try {
     const response = await ai.models.generateContent({

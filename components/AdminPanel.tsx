@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Inquiry, User, UserRole, CompanySettings } from '../types';
-import { downloadFile } from '../utils/downloadUtils';
+import { downloadFile, generateQuotationText, generateIisInstallationGuide } from '../utils/downloadUtils';
 
 interface AdminPanelProps {
   inquiries: Inquiry[];
@@ -9,7 +9,7 @@ interface AdminPanelProps {
 }
 
 const AdminPanel: React.FC<AdminPanelProps> = ({ inquiries, onDeleteInquiry }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'users' | 'database' | 'branding'>('users');
+  const [activeSubTab, setActiveSubTab] = useState<'users' | 'database' | 'branding' | 'deployment'>('users');
   const [users, setUsers] = useState<User[]>([]);
   const [showAddUser, setShowAddUser] = useState(false);
   const [passwordResetUser, setPasswordResetUser] = useState<User | null>(null);
@@ -62,6 +62,11 @@ const AdminPanel: React.FC<AdminPanelProps> = ({ inquiries, onDeleteInquiry }) =
   const handleSaveConfig = () => {
     localStorage.setItem('pharmaflow_db_config', JSON.stringify(dbConfig));
     alert('Database configuration saved successfully!');
+  };
+
+  const handleDownloadIisGuide = () => {
+    const guide = generateIisInstallationGuide(companySettings.name);
+    downloadFile('PharmaFlow_IIS_Installation_Guide.pdf', guide, 'application/pdf');
   };
 
   const handleGenerateSql = () => {
@@ -153,21 +158,27 @@ INSERT INTO users (id, name, email, role) VALUES ('1', 'Admin', 'admin@pharmaflo
         <div className="flex bg-slate-200 p-1 rounded-xl">
           <button 
             onClick={() => setActiveSubTab('users')}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeSubTab === 'users' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeSubTab === 'users' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
           >
             Users
           </button>
           <button 
             onClick={() => setActiveSubTab('branding')}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeSubTab === 'branding' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeSubTab === 'branding' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
           >
             Branding
           </button>
           <button 
             onClick={() => setActiveSubTab('database')}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeSubTab === 'database' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeSubTab === 'database' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
           >
-            System Data
+            Database
+          </button>
+          <button 
+            onClick={() => setActiveSubTab('deployment')}
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${activeSubTab === 'deployment' ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}
+          >
+            Deployment
           </button>
         </div>
       </div>
@@ -291,6 +302,65 @@ INSERT INTO users (id, name, email, role) VALUES ('1', 'Admin', 'admin@pharmaflo
                 <h4 className="text-xl font-bold text-slate-900">{companySettings.name}</h4>
                 <p className="text-xs text-slate-500 mt-2 max-w-xs">{companySettings.address}</p>
              </div>
+          </div>
+        </div>
+      ) : activeSubTab === 'deployment' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          <div className="lg:col-span-8 bg-white p-8 rounded-3xl shadow-xl border border-slate-100 space-y-8">
+            <div className="flex items-center space-x-4">
+              <div className="w-12 h-12 bg-blue-600 rounded-2xl flex items-center justify-center text-white text-2xl shadow-lg shadow-blue-100">🖥️</div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-800">IIS Installation Package</h3>
+                <p className="text-sm text-slate-500 font-medium">Configure local server hosting for Enterprise deployment</p>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 space-y-4">
+              <h4 className="text-sm font-bold text-slate-800 uppercase tracking-widest">Step 1: Download Deployment Assets</h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Download the official installation guide which contains specific rules for your company branding. 
+                This document provides a step-by-step walkthrough for IIS 10.0+ environments.
+              </p>
+              <button 
+                onClick={handleDownloadIisGuide}
+                className="flex items-center space-x-3 bg-white border border-slate-200 px-6 py-3 rounded-xl hover:border-blue-500 hover:text-blue-600 transition-all shadow-sm group"
+              >
+                <span className="text-xl group-hover:scale-110 transition-transform">📄</span>
+                <span className="font-bold text-sm">Download IIS Installation PDF</span>
+              </button>
+            </div>
+
+            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100 space-y-4">
+              <h4 className="text-sm font-bold text-slate-800 uppercase tracking-widest">Step 2: Server Verification</h4>
+              <div className="space-y-3">
+                {[
+                  { label: "web.config Routing Rule", status: "Verified", icon: "✅" },
+                  { label: "MIME Type: .mjs Support", status: "Verified", icon: "✅" },
+                  { label: "MIME Type: .woff2 Support", status: "Verified", icon: "✅" },
+                  { label: "Client-side Base Path", status: "Verified (./)", icon: "✅" }
+                ].map((item, i) => (
+                  <div key={i} className="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-100">
+                    <span className="text-xs font-medium text-slate-600">{item.label}</span>
+                    <span className="text-[10px] font-bold text-emerald-600 flex items-center">{item.icon} {item.status}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          <div className="lg:col-span-4 space-y-6">
+            <div className="bg-blue-600 p-8 rounded-3xl shadow-xl text-white">
+              <h4 className="font-bold text-lg mb-4">Enterprise Support</h4>
+              <p className="text-xs text-blue-100 leading-relaxed mb-6">
+                Deployment to local servers requires the IIS URL Rewrite module to handle React's client-side routing.
+              </p>
+              <a 
+                href="https://www.iis.net/downloads/microsoft/url-rewrite" 
+                target="_blank" 
+                className="block text-center bg-white text-blue-600 font-bold py-3 rounded-xl text-xs hover:bg-blue-50 transition-colors shadow-lg shadow-blue-800/20"
+              >
+                Download URL Rewrite Module
+              </a>
+            </div>
           </div>
         </div>
       ) : (
