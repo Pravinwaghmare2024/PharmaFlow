@@ -4,7 +4,7 @@ import Sidebar from './components/Sidebar';
 import LoadingSpinner from './components/LoadingSpinner';
 import Login from './components/Login';
 import { MOCK_CUSTOMERS } from './constants';
-import { Inquiry, InquiryStatus, User, UserRole } from './types';
+import { Inquiry, InquiryStatus, User, UserRole, Customer } from './types';
 
 // Lazy load components
 const Dashboard = lazy(() => import('./components/Dashboard'));
@@ -16,6 +16,7 @@ const LeadManager = lazy(() => import('./components/LeadManager'));
 const ProductCatalog = lazy(() => import('./components/ProductCatalog'));
 const ManufacturingManager = lazy(() => import('./components/ManufacturingManager'));
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
+const CustomerManager = lazy(() => import('./components/CustomerManager'));
 
 const INITIAL_INQUIRIES: Inquiry[] = [
   { 
@@ -51,11 +52,25 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [prefillQuotation, setPrefillQuotation] = useState<Partial<Inquiry> | null>(null);
   const [inquiries, setInquiries] = useState<Inquiry[]>(INITIAL_INQUIRIES);
+  const [customers, setCustomers] = useState<Customer[]>([]);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('pharmaflow_active_user');
     if (savedUser) setUser(JSON.parse(savedUser));
+
+    const savedCustomers = localStorage.getItem('pharmaflow_customers');
+    if (savedCustomers) {
+      setCustomers(JSON.parse(savedCustomers));
+    } else {
+      setCustomers(MOCK_CUSTOMERS as Customer[]);
+    }
   }, []);
+
+  useEffect(() => {
+    if (customers.length > 0) {
+      localStorage.setItem('pharmaflow_customers', JSON.stringify(customers));
+    }
+  }, [customers]);
 
   const handleLogin = (newUser: User) => {
     setUser(newUser);
@@ -82,6 +97,10 @@ const App: React.FC = () => {
 
   const handleUpdateInquiry = (updatedInq: Inquiry) => {
     setInquiries(prev => prev.map(inq => inq.id === updatedInq.id ? updatedInq : inq));
+  };
+
+  const handleAddCustomer = (customer: Customer) => {
+    setCustomers(prev => [customer, ...prev]);
   };
 
   if (!user) {
@@ -117,38 +136,10 @@ const App: React.FC = () => {
               <AdminPanel inquiries={inquiries} onDeleteInquiry={handleDeleteInquiry} />
             ) : <Dashboard />;
             case 'customers': return (
-              <div className="space-y-6 animate-in fade-in duration-500">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h2 className="text-2xl font-bold text-slate-800">Customer Directory</h2>
-                    <p className="text-slate-500 text-sm">Hospitals, pharmacies, and distributors</p>
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {MOCK_CUSTOMERS.map(c => (
-                    <div key={c.id} className="bg-white p-6 rounded-xl shadow-sm border border-slate-100 hover:border-blue-200 transition-all hover:shadow-md cursor-default group">
-                      <div className="flex justify-between mb-4">
-                        <span className="text-[10px] bg-blue-50 text-blue-600 font-bold uppercase tracking-wider px-2 py-0.5 rounded">
-                          {c.type}
-                        </span>
-                        <span className="text-slate-400 text-xs font-medium">{c.id}</span>
-                      </div>
-                      <h3 className="font-bold text-slate-900 text-lg mb-1 group-hover:text-blue-600 transition-colors">{c.name}</h3>
-                      <p className="text-sm text-slate-500 mb-4">{c.address}</p>
-                      <div className="space-y-2 text-sm pt-4 border-t border-slate-50">
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Contact</span>
-                          <span className="text-slate-800 font-medium">{c.contactPerson}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-400">Email</span>
-                          <span className="text-blue-600 hover:underline cursor-pointer">{c.email}</span>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              <CustomerManager 
+                customers={customers} 
+                onAddCustomer={handleAddCustomer} 
+              />
             );
             default: return <Dashboard />;
           }
