@@ -2,22 +2,42 @@
 import React, { useState } from 'react';
 import { Product } from '../types';
 
-const INITIAL_PRODUCTS: Product[] = [
-  { id: 'P1', name: 'Amoxicillin 500mg', dosageForm: 'Capsule', strength: '500mg', packSize: '10x10', unitPrice: 12.50, category: 'Antibiotics', stock: 1250 },
-  { id: 'P2', name: 'Paracetamol 650mg', dosageForm: 'Tablet', strength: '650mg', packSize: '10x10', unitPrice: 5.20, category: 'OTC', stock: 5000 },
-  { id: 'P3', name: 'Omeprazole 20mg', dosageForm: 'Delayed-Release', strength: '20mg', packSize: '14s', unitPrice: 8.75, category: 'Chronic', stock: 840 },
-  { id: 'P4', name: 'Metformin 500mg', dosageForm: 'Tablet', strength: '500mg', packSize: '30s', unitPrice: 4.50, category: 'Chronic', stock: 2100 },
-  { id: 'P5', name: 'Azithromycin 250mg', dosageForm: 'Tablet', strength: '250mg', packSize: '6s', unitPrice: 15.00, category: 'Antibiotics', stock: 450 },
-  { id: 'P6', name: 'Insulin Glargine', dosageForm: 'Injection', strength: '100U/ml', packSize: '3ml Pen', unitPrice: 45.00, category: 'Specialty', stock: 120 },
-];
+interface ProductCatalogProps {
+  products: Product[];
+  onAddProduct: (product: Product) => void;
+}
 
-const ProductCatalog: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+const ProductCatalog: React.FC<ProductCatalogProps> = ({ products, onAddProduct }) => {
   const [filter, setFilter] = useState('All');
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newProduct, setNewProduct] = useState<Partial<Product>>({
+    category: 'Antibiotics',
+    dosageForm: 'Tablet'
+  });
 
   const filteredProducts = filter === 'All' 
     ? products 
     : products.filter(p => p.category === filter);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProduct.name || !newProduct.strength || !newProduct.unitPrice) return;
+
+    const product: Product = {
+      id: `P-${Math.floor(1000 + Math.random() * 9000)}`,
+      name: newProduct.name!,
+      dosageForm: newProduct.dosageForm || 'Tablet',
+      strength: newProduct.strength!,
+      packSize: newProduct.packSize || '10x10',
+      unitPrice: Number(newProduct.unitPrice),
+      category: newProduct.category as any || 'Antibiotics',
+      stock: Number(newProduct.stock) || 0,
+    };
+
+    onAddProduct(product);
+    setShowAddModal(false);
+    setNewProduct({ category: 'Antibiotics', dosageForm: 'Tablet' });
+  };
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -26,16 +46,24 @@ const ProductCatalog: React.FC = () => {
           <h2 className="text-2xl font-bold text-slate-800">Product Catalog</h2>
           <p className="text-slate-500 text-sm">Enterprise drug inventory and pricing index</p>
         </div>
-        <div className="flex bg-slate-200 p-1 rounded-xl">
-          {['All', 'Antibiotics', 'Chronic', 'OTC', 'Specialty'].map((cat) => (
-            <button 
-              key={cat}
-              onClick={() => setFilter(cat)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filter === cat ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
-            >
-              {cat}
-            </button>
-          ))}
+        <div className="flex items-center space-x-4">
+          <div className="flex bg-slate-200 p-1 rounded-xl">
+            {['All', 'Antibiotics', 'Chronic', 'OTC', 'Specialty'].map((cat) => (
+              <button 
+                key={cat}
+                onClick={() => setFilter(cat)}
+                className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${filter === cat ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-100 transition-all active:scale-95"
+          >
+            + Add Product
+          </button>
         </div>
       </div>
 
@@ -78,6 +106,114 @@ const ProductCatalog: React.FC = () => {
           </div>
         ))}
       </div>
+
+      {showAddModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+          <form onSubmit={handleSubmit} className="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden animate-in zoom-in-95">
+            <div className="p-8 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+              <div>
+                <h3 className="text-xl font-bold text-slate-800">Add New Product</h3>
+                <p className="text-xs text-slate-400 font-medium uppercase tracking-widest mt-1">Inventory Management System</p>
+              </div>
+              <button type="button" onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600 text-2xl">✕</button>
+            </div>
+            
+            <div className="p-8 space-y-5">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="col-span-2">
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Product Name</label>
+                  <input 
+                    required 
+                    className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="e.g. Amoxicillin 500mg"
+                    value={newProduct.name || ''}
+                    onChange={e => setNewProduct({...newProduct, name: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Category</label>
+                  <select 
+                    className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                    value={newProduct.category}
+                    onChange={e => setNewProduct({...newProduct, category: e.target.value as any})}
+                  >
+                    <option value="Antibiotics">Antibiotics</option>
+                    <option value="Chronic">Chronic</option>
+                    <option value="OTC">OTC</option>
+                    <option value="Specialty">Specialty</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Dosage Form</label>
+                  <select 
+                    className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                    value={newProduct.dosageForm}
+                    onChange={e => setNewProduct({...newProduct, dosageForm: e.target.value})}
+                  >
+                    <option value="Tablet">Tablet</option>
+                    <option value="Capsule">Capsule</option>
+                    <option value="Injection">Injection</option>
+                    <option value="Syrup">Syrup</option>
+                    <option value="Ointment">Ointment</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Strength</label>
+                  <input 
+                    required 
+                    className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="e.g. 500mg"
+                    value={newProduct.strength || ''}
+                    onChange={e => setNewProduct({...newProduct, strength: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Pack Size</label>
+                  <input 
+                    className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="e.g. 10x10"
+                    value={newProduct.packSize || ''}
+                    onChange={e => setNewProduct({...newProduct, packSize: e.target.value})}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Unit Price ($)</label>
+                  <input 
+                    required 
+                    type="number"
+                    step="0.01"
+                    className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="0.00"
+                    value={newProduct.unitPrice || ''}
+                    onChange={e => setNewProduct({...newProduct, unitPrice: Number(e.target.value)})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Initial Stock</label>
+                  <input 
+                    type="number"
+                    className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    placeholder="0"
+                    value={newProduct.stock || ''}
+                    onChange={e => setNewProduct({...newProduct, stock: Number(e.target.value)})}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="p-8 bg-slate-50 flex space-x-4">
+              <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 py-3 text-slate-500 font-bold text-xs uppercase tracking-widest hover:text-slate-800 transition-colors">Cancel</button>
+              <button type="submit" className="flex-1 py-3 bg-blue-600 text-white rounded-2xl font-bold text-xs uppercase tracking-widest shadow-xl shadow-blue-100 hover:bg-blue-700 transition-all active:scale-95">Add to Catalog</button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 };

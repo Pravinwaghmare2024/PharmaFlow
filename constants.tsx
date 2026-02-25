@@ -18,10 +18,12 @@ export const MOCK_CUSTOMERS = [
 ];
 
 export const MOCK_PRODUCTS = [
-  { id: 'P1', name: 'Amoxicillin 500mg', dosageForm: 'Capsule', strength: '500mg', packSize: '10x10', unitPrice: 12.50 },
-  { id: 'P2', name: 'Paracetamol 650mg', dosageForm: 'Tablet', strength: '650mg', packSize: '10x10', unitPrice: 5.20 },
-  { id: 'P3', name: 'Omeprazole 20mg', dosageForm: 'Delayed-Release', strength: '20mg', packSize: '14s', unitPrice: 8.75 },
-  { id: 'P4', name: 'Metformin 500mg', dosageForm: 'Tablet', strength: '500mg', packSize: '30s', unitPrice: 4.50 },
+  { id: 'P1', name: 'Amoxicillin 500mg', dosageForm: 'Capsule', strength: '500mg', packSize: '10x10', unitPrice: 12.50, category: 'Antibiotics', stock: 1250 },
+  { id: 'P2', name: 'Paracetamol 650mg', dosageForm: 'Tablet', strength: '650mg', packSize: '10x10', unitPrice: 5.20, category: 'OTC', stock: 5000 },
+  { id: 'P3', name: 'Omeprazole 20mg', dosageForm: 'Delayed-Release', strength: '20mg', packSize: '14s', unitPrice: 8.75, category: 'Chronic', stock: 840 },
+  { id: 'P4', name: 'Metformin 500mg', dosageForm: 'Tablet', strength: '500mg', packSize: '30s', unitPrice: 4.50, category: 'Chronic', stock: 2100 },
+  { id: 'P5', name: 'Azithromycin 250mg', dosageForm: 'Tablet', strength: '250mg', packSize: '6s', unitPrice: 15.00, category: 'Antibiotics', stock: 450 },
+  { id: 'P6', name: 'Insulin Glargine', dosageForm: 'Injection', strength: '100U/ml', packSize: '3ml Pen', unitPrice: 45.00, category: 'Specialty', stock: 120 },
 ];
 
 export const MOCK_LEADS = [

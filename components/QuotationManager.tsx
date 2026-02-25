@@ -1,12 +1,14 @@
 
 import React, { useState, useEffect } from 'react';
-import { Quotation, Comment, Attachment, Inquiry, QuotationItem, CompanySettings } from '../types';
-import { MOCK_PRODUCTS, MOCK_CUSTOMERS } from '../constants';
+import { Quotation, Comment, Attachment, Inquiry, QuotationItem, CompanySettings, Customer, Product } from '../types';
 import { downloadFile, generateQuotationText } from '../utils/downloadUtils';
 
 interface QuotationManagerProps {
   prefillData?: Partial<Inquiry> | null;
   onClearPrefill?: () => void;
+  customers: Customer[];
+  products: Product[];
+  onAddCustomer: (customer: Customer) => void;
 }
 
 const INITIAL_QUOTATIONS: Quotation[] = [
@@ -31,12 +33,22 @@ const INITIAL_QUOTATIONS: Quotation[] = [
   }
 ];
 
-const QuotationManager: React.FC<QuotationManagerProps> = ({ prefillData, onClearPrefill }) => {
+const QuotationManager: React.FC<QuotationManagerProps> = ({ 
+  prefillData, 
+  onClearPrefill,
+  customers,
+  products,
+  onAddCustomer
+}) => {
   const [quotations, setQuotations] = useState<Quotation[]>(INITIAL_QUOTATIONS);
   const [selectedQuo, setSelectedQuo] = useState<Quotation | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showQuickAddCustomer, setShowQuickAddCustomer] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [companyInfo, setCompanyInfo] = useState({ name: 'PharmaFlow Enterprise', address: '123 Global Biotech Park, NY' });
+
+  // Quick Add Customer State
+  const [quickCustomer, setQuickCustomer] = useState<Partial<Customer>>({ type: 'Hospital' });
 
   useEffect(() => {
     const savedBranding = localStorage.getItem('pharmaflow_branding');
@@ -79,7 +91,7 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({ prefillData, onClea
   };
 
   const handleAddItem = (productId: string) => {
-    const product = MOCK_PRODUCTS.find(p => p.id === productId);
+    const product = products.find(p => p.id === productId);
     if (!product) return;
 
     const newItem: QuotationItem = {
@@ -95,6 +107,26 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({ prefillData, onClea
       ...prev,
       items: [...(prev.items || []), newItem]
     }));
+  };
+
+  const handleQuickAddCustomer = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickCustomer.name || !quickCustomer.contactPerson || !quickCustomer.email) return;
+
+    const customer: Customer = {
+      id: `C-${Math.floor(1000 + Math.random() * 9000)}`,
+      name: quickCustomer.name!,
+      contactPerson: quickCustomer.contactPerson!,
+      email: quickCustomer.email!,
+      phone: quickCustomer.phone || '',
+      type: quickCustomer.type as any || 'Hospital',
+      address: quickCustomer.address || '',
+    };
+
+    onAddCustomer(customer);
+    setFormData({ ...formData, customerId: customer.id, customerName: customer.name });
+    setShowQuickAddCustomer(false);
+    setQuickCustomer({ type: 'Hospital' });
   };
 
   const handleCreateQuotation = () => {
@@ -196,17 +228,25 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({ prefillData, onClea
             <div className="flex-1 overflow-y-auto p-8 space-y-8">
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Customer</label>
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="block text-xs font-bold text-slate-400 uppercase">Customer</label>
+                    <button 
+                      onClick={() => setShowQuickAddCustomer(true)}
+                      className="text-[10px] font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wider"
+                    >
+                      + Quick Add
+                    </button>
+                  </div>
                   <select 
                     className="w-full border border-slate-200 rounded-lg p-2.5 text-sm"
                     value={formData.customerId || ''}
                     onChange={(e) => {
-                      const c = MOCK_CUSTOMERS.find(x => x.id === e.target.value);
+                      const c = customers.find(x => x.id === e.target.value);
                       setFormData({...formData, customerId: e.target.value, customerName: c?.name});
                     }}
                   >
                     <option value="">Select Customer...</option>
-                    {MOCK_CUSTOMERS.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
                 <div>
@@ -224,7 +264,7 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({ prefillData, onClea
                     value=""
                   >
                     <option value="">+ Add Product Item</option>
-                    {MOCK_PRODUCTS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
                 
@@ -367,6 +407,67 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({ prefillData, onClea
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Quick Add Customer Modal */}
+      {showQuickAddCustomer && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center z-[120] p-4">
+          <form onSubmit={handleQuickAddCustomer} className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95">
+            <div className="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-slate-800">Quick Add Customer</h3>
+              <button type="button" onClick={() => setShowQuickAddCustomer(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Company Name</label>
+                <input 
+                  required 
+                  className="w-full border border-slate-200 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  value={quickCustomer.name || ''}
+                  onChange={e => setQuickCustomer({...quickCustomer, name: e.target.value})}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Type</label>
+                  <select 
+                    className="w-full border border-slate-200 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                    value={quickCustomer.type}
+                    onChange={e => setQuickCustomer({...quickCustomer, type: e.target.value as any})}
+                  >
+                    <option value="Hospital">Hospital</option>
+                    <option value="Pharmacy">Pharmacy</option>
+                    <option value="Distributor">Distributor</option>
+                    <option value="Clinic">Clinic</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Contact Person</label>
+                  <input 
+                    required 
+                    className="w-full border border-slate-200 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    value={quickCustomer.contactPerson || ''}
+                    onChange={e => setQuickCustomer({...quickCustomer, contactPerson: e.target.value})}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-1">Email</label>
+                <input 
+                  required 
+                  type="email"
+                  className="w-full border border-slate-200 rounded-lg p-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  value={quickCustomer.email || ''}
+                  onChange={e => setQuickCustomer({...quickCustomer, email: e.target.value})}
+                />
+              </div>
+            </div>
+            <div className="p-6 bg-slate-50 flex space-x-3">
+              <button type="button" onClick={() => setShowQuickAddCustomer(false)} className="flex-1 py-2 text-slate-500 font-bold text-xs uppercase">Cancel</button>
+              <button type="submit" className="flex-1 py-2 bg-blue-600 text-white rounded-xl font-bold text-xs uppercase shadow-lg shadow-blue-100">Add & Select</button>
+            </div>
+          </form>
         </div>
       )}
     </div>

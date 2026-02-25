@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
-import { Batch, BatchStatus, InventoryItem, UnitType } from '../types';
-import { MOCK_PRODUCTS } from '../constants';
+import { Batch, BatchStatus, InventoryItem, UnitType, Product } from '../types';
 
 const INITIAL_INVENTORY: InventoryItem[] = [
   { id: 'RM-001', name: 'Amoxicillin API', type: 'Raw Material', quantity: 250, unit: 'KG', minThreshold: 50 },
@@ -36,7 +35,11 @@ const INITIAL_BATCHES: Batch[] = [
   },
 ];
 
-const ManufacturingManager: React.FC = () => {
+interface ManufacturingManagerProps {
+  products: Product[];
+}
+
+const ManufacturingManager: React.FC<ManufacturingManagerProps> = ({ products }) => {
   const [batches, setBatches] = useState<Batch[]>(INITIAL_BATCHES);
   const [inventory, setInventory] = useState<InventoryItem[]>(INITIAL_INVENTORY);
   const [showAddBatch, setShowAddBatch] = useState(false);
@@ -54,7 +57,7 @@ const ManufacturingManager: React.FC = () => {
 
   const handleCreateBatch = () => {
     if (!newBatch.batchNumber || !newBatch.productId) return;
-    const prod = MOCK_PRODUCTS.find(p => p.id === newBatch.productId);
+    const prod = products.find(p => p.id === newBatch.productId);
     const batch: Batch = {
       id: `B-${Date.now()}`,
       batchNumber: newBatch.batchNumber!,
@@ -227,7 +230,7 @@ const ManufacturingManager: React.FC = () => {
                     onChange={e => setNewBatch({...newBatch, productId: e.target.value})}
                   >
                     <option value="">Select Product...</option>
-                    {MOCK_PRODUCTS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
                 </div>
               </div>

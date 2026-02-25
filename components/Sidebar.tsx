@@ -7,9 +7,11 @@ interface SidebarProps {
   setActiveTab: (tab: string) => void;
   user: User | null;
   onLogout: () => void;
+  isOpen: boolean;
+  onToggle: () => void;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onLogout }) => {
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onLogout, isOpen, onToggle }) => {
   const allMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊', roles: [UserRole.ADMIN, UserRole.USER] },
     { id: 'leads', label: 'Leads & CRM', icon: '🎯', roles: [UserRole.ADMIN, UserRole.USER] },
@@ -26,10 +28,18 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onLogo
   const filteredItems = allMenuItems.filter(item => user && item.roles.includes(user.role));
 
   return (
-    <div className="w-64 bg-slate-900 h-screen text-white flex flex-col fixed left-0 top-0 shadow-xl z-50">
-      <div className="p-6 border-b border-slate-800">
-        <h1 className="text-xl font-bold tracking-tight text-blue-400">PharmaFlow CRM</h1>
-        <p className="text-xs text-slate-400 mt-1 uppercase tracking-widest font-semibold">Enterprise Portal</p>
+    <div className={`w-64 bg-slate-900 h-screen text-white flex flex-col fixed left-0 top-0 shadow-xl z-50 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className="p-6 border-b border-slate-800 flex justify-between items-center">
+        <div>
+          <h1 className="text-xl font-bold tracking-tight text-blue-400">PharmaFlow</h1>
+          <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-widest font-semibold">Enterprise Portal</p>
+        </div>
+        <button 
+          onClick={onToggle}
+          className="lg:hidden text-slate-400 hover:text-white"
+        >
+          ✕
+        </button>
       </div>
       <nav className="flex-1 mt-6 px-4 overflow-y-auto">
         <ul className="space-y-2">
@@ -60,12 +70,20 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, user, onLogo
             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">{user?.role}</p>
           </div>
         </div>
-        <button 
-          onClick={onLogout}
-          className="w-full text-left px-4 py-2 text-xs font-bold text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
-        >
-          ✕ Sign Out
-        </button>
+        <div className="pt-2 space-y-2">
+          <button 
+            onClick={onToggle}
+            className="w-full text-left px-4 py-2 text-[10px] font-bold text-slate-500 hover:text-slate-300 transition-colors uppercase tracking-widest"
+          >
+            ← Hide Menu
+          </button>
+          <button 
+            onClick={onLogout}
+            className="w-full text-left px-4 py-2 text-xs font-bold text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+          >
+            ✕ Sign Out
+          </button>
+        </div>
       </div>
     </div>
   );
