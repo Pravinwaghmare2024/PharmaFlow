@@ -132,6 +132,7 @@ export interface Inquiry {
   id: string;
   customerId: string;
   customerName: string;
+  contactPerson: string;
   status: InquiryStatus;
   date: string;
   products: string[]; 

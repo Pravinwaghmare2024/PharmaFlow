@@ -42,8 +42,9 @@ const InquiryManager: React.FC<InquiryManagerProps> = ({
       id: `INQ-00${inquiries.length + 1}`,
       customerId: newInquiry.customerId!,
       customerName: customer?.name || 'Unknown',
+      contactPerson: newInquiry.contactPerson || customer?.contactPerson || 'Unknown',
       status: InquiryStatus.NEW,
-      date: new Date().toISOString().split('T')[0],
+      date: newInquiry.date || new Date().toISOString().split('T')[0],
       products: Array.isArray(newInquiry.products) ? newInquiry.products : [newInquiry.products as string],
       notes: newInquiry.notes || '',
       assignedTo: 'John Doe',
@@ -134,7 +135,7 @@ const InquiryManager: React.FC<InquiryManagerProps> = ({
           <thead className="bg-slate-50 border-b border-slate-100">
             <tr>
               <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">ID</th>
-              <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Customer</th>
+              <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Customer & Contact</th>
               <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Products</th>
               <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
               <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">Actions</th>
@@ -146,7 +147,8 @@ const InquiryManager: React.FC<InquiryManagerProps> = ({
                 <td className="px-6 py-4 text-sm font-medium text-slate-900">{inq.id}</td>
                 <td className="px-6 py-4 text-sm text-slate-600">
                   <div className="font-semibold text-slate-800">{inq.customerName}</div>
-                  <div className="text-xs">{inq.date}</div>
+                  <div className="text-xs text-slate-500 font-medium">{inq.contactPerson}</div>
+                  <div className="text-[10px] text-slate-400 mt-1">{inq.date}</div>
                 </td>
                 <td className="px-6 py-4 text-sm text-slate-600">
                   <div className="flex flex-wrap gap-1">
@@ -198,7 +200,7 @@ const InquiryManager: React.FC<InquiryManagerProps> = ({
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-slate-800">{selectedInquiry.customerName}</h3>
-                  <p className="text-xs text-slate-500">{selectedInquiry.id} • Assigned to {selectedInquiry.assignedTo}</p>
+                  <p className="text-xs text-slate-500">{selectedInquiry.id} • {selectedInquiry.contactPerson} • Assigned to {selectedInquiry.assignedTo}</p>
                 </div>
               </div>
               <button onClick={() => { setSelectedInquiry(null); setAiSuggestion(''); }} className="text-slate-400 hover:text-slate-600 text-2xl">✕</button>
@@ -329,24 +331,48 @@ const InquiryManager: React.FC<InquiryManagerProps> = ({
               <button onClick={() => setShowAddModal(false)} className="text-slate-400 hover:text-slate-600">✕</button>
             </div>
             <div className="p-6 space-y-4">
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="block text-sm font-medium text-slate-700">Select Customer</label>
-                  <button 
-                    onClick={() => setShowQuickAddCustomer(true)}
-                    className="text-[10px] font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wider"
-                  >
-                    + Quick Add New
-                  </button>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">Inquiry Date</label>
+                  <input 
+                    type="date" 
+                    className="w-full border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    value={newInquiry.date || new Date().toISOString().split('T')[0]}
+                    onChange={(e) => setNewInquiry({...newInquiry, date: e.target.value})}
+                  />
                 </div>
-                <select 
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="block text-sm font-medium text-slate-700">Customer</label>
+                    <button 
+                      onClick={() => setShowQuickAddCustomer(true)}
+                      className="text-[10px] font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wider"
+                    >
+                      + Quick Add
+                    </button>
+                  </div>
+                  <select 
+                    className="w-full border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    value={newInquiry.customerId || ''}
+                    onChange={(e) => {
+                      const c = customers.find(cust => cust.id === e.target.value);
+                      setNewInquiry({...newInquiry, customerId: e.target.value, contactPerson: c?.contactPerson});
+                    }}
+                  >
+                    <option value="">Choose customer...</option>
+                    {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">Contact Person</label>
+                <input 
+                  type="text" 
+                  placeholder="Person to contact"
                   className="w-full border border-slate-200 rounded-lg p-2.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                  value={newInquiry.customerId || ''}
-                  onChange={(e) => setNewInquiry({...newInquiry, customerId: e.target.value})}
-                >
-                  <option value="">Choose a hospital or pharmacy...</option>
-                  {customers.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
+                  value={newInquiry.contactPerson || ''}
+                  onChange={(e) => setNewInquiry({...newInquiry, contactPerson: e.target.value})}
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Products Interested</label>
