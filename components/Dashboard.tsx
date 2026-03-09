@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
-import { InquiryStatus } from '../types';
+import { InquiryStatus, CompanySettings } from '../types';
 
 const data = [
   { name: 'Mon', inquiries: 4, quotes: 2 },
@@ -17,7 +17,11 @@ const statusData = [
   { name: 'Converted', value: 25, color: '#22c55e' },
 ];
 
-const Dashboard: React.FC = () => {
+interface DashboardProps {
+  settings: CompanySettings;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ settings }) => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -30,7 +34,7 @@ const Dashboard: React.FC = () => {
           { label: 'Total Inquiries', value: '142', change: '+12%', color: 'text-blue-600' },
           { label: 'Pending Quotes', value: '28', change: '-3%', color: 'text-amber-600' },
           { label: 'Conversion Rate', value: '24.5%', change: '+2.1%', color: 'text-emerald-600' },
-          { label: 'Total Revenue', value: '$124.5k', change: '+18%', color: 'text-indigo-600' },
+          { label: 'Total Revenue', value: `${settings.currencySymbol}124.5k`, change: '+18%', color: 'text-indigo-600' },
         ].map((stat, i) => (
           <div key={i} className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
             <p className="text-sm text-slate-500 font-medium">{stat.label}</p>

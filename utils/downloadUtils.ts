@@ -15,7 +15,7 @@ export const downloadFile = (filename: string, content: string, mimeType: string
 
 export const generateQuotationText = (quo: any, settings: CompanySettings) => {
   const lineItems = quo.items.map((item: any) => 
-    `${item.productName.padEnd(30)} | Qty: ${item.quantity.toString().padEnd(5)} | Price: $${item.unitPrice.toFixed(2).padEnd(8)} | Total: $${item.total.toFixed(2)}`
+    `${item.productName.padEnd(30)} | Qty: ${item.quantity.toString().padEnd(5)} | Price: ${settings.currencySymbol}${item.unitPrice.toFixed(2).padEnd(8)} | Total: ${settings.currencySymbol}${item.total.toFixed(2)}`
   ).join('\n');
 
   return `
@@ -37,7 +37,7 @@ Customer ID: ${quo.customerId}
 LINE ITEMS:
 ${lineItems}
 --------------------------------------------------------------------------------
-GRAND TOTAL: $${quo.totalAmount.toLocaleString()}
+GRAND TOTAL: ${settings.currencySymbol}${quo.totalAmount.toLocaleString()}
 --------------------------------------------------------------------------------
 TERMS AND CONDITIONS:
 ${settings.termsAndConditions}

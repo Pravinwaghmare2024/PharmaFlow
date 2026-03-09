@@ -18,6 +18,7 @@ const ManufacturingManager = lazy(() => import('./components/ManufacturingManage
 const AdminPanel = lazy(() => import('./components/AdminPanel'));
 const CustomerManager = lazy(() => import('./components/CustomerManager'));
 const TemplateSettings = lazy(() => import('./components/TemplateSettings'));
+const CommercialActivation = lazy(() => import('./components/CommercialActivation'));
 
 const INITIAL_SETTINGS: CompanySettings = {
   name: 'PharmaFlow Enterprise',
@@ -25,7 +26,9 @@ const INITIAL_SETTINGS: CompanySettings = {
   quotationPrefix: 'QUO-23-',
   inquiryPrefix: 'INQ-',
   termsAndConditions: '1. Payment within 30 days. 2. Goods once sold are not returnable. 3. Subject to jurisdiction of New York courts.',
-  footerText: 'PharmaFlow - Empowering Healthcare through Innovation'
+  footerText: 'PharmaFlow - Empowering Healthcare through Innovation',
+  currencySymbol: '$',
+  isActivated: false
 };
 
 const INITIAL_INQUIRIES: Inquiry[] = [
@@ -86,50 +89,38 @@ const App: React.FC = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [prefillQuotation, setPrefillQuotation] = useState<Partial<Inquiry> | null>(null);
-  const [inquiries, setInquiries] = useState<Inquiry[]>(INITIAL_INQUIRIES);
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [quotations, setQuotations] = useState<Quotation[]>(INITIAL_QUOTATIONS);
-  const [batches, setBatches] = useState<Batch[]>([]);
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
-  const [settings, setSettings] = useState<CompanySettings>(INITIAL_SETTINGS);
+  const [inquiries, setInquiries] = useState<Inquiry[]>(() => {
+    const saved = localStorage.getItem('pharmaflow_inquiries');
+    return saved ? JSON.parse(saved) : INITIAL_INQUIRIES;
+  });
+  const [customers, setCustomers] = useState<Customer[]>(() => {
+    const saved = localStorage.getItem('pharmaflow_customers');
+    return saved ? JSON.parse(saved) : MOCK_CUSTOMERS;
+  });
+  const [products, setProducts] = useState<Product[]>(() => {
+    const saved = localStorage.getItem('pharmaflow_products');
+    return saved ? JSON.parse(saved) : MOCK_PRODUCTS;
+  });
+  const [quotations, setQuotations] = useState<Quotation[]>(() => {
+    const saved = localStorage.getItem('pharmaflow_quotations');
+    return saved ? JSON.parse(saved) : INITIAL_QUOTATIONS;
+  });
+  const [batches, setBatches] = useState<Batch[]>(() => {
+    const saved = localStorage.getItem('pharmaflow_batches');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [inventory, setInventory] = useState<InventoryItem[]>(() => {
+    const saved = localStorage.getItem('pharmaflow_inventory');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [settings, setSettings] = useState<CompanySettings>(() => {
+    const saved = localStorage.getItem('pharmaflow_settings');
+    return saved ? JSON.parse(saved) : INITIAL_SETTINGS;
+  });
 
   useEffect(() => {
     const savedUser = localStorage.getItem('pharmaflow_active_user');
     if (savedUser) setUser(JSON.parse(savedUser));
-
-    const savedCustomers = localStorage.getItem('pharmaflow_customers');
-    if (savedCustomers) {
-      setCustomers(JSON.parse(savedCustomers));
-    } else {
-      setCustomers(MOCK_CUSTOMERS as Customer[]);
-    }
-
-    const savedProducts = localStorage.getItem('pharmaflow_products');
-    if (savedProducts) {
-      setProducts(JSON.parse(savedProducts));
-    } else {
-      setProducts(MOCK_PRODUCTS as Product[]);
-    }
-
-    const savedQuotations = localStorage.getItem('pharmaflow_quotations');
-    if (savedQuotations) {
-      setQuotations(JSON.parse(savedQuotations));
-    }
-
-    const savedInquiries = localStorage.getItem('pharmaflow_inquiries');
-    if (savedInquiries) {
-      setInquiries(JSON.parse(savedInquiries));
-    }
-
-    const savedBatches = localStorage.getItem('pharmaflow_batches');
-    if (savedBatches) setBatches(JSON.parse(savedBatches));
-
-    const savedInventory = localStorage.getItem('pharmaflow_inventory');
-    if (savedInventory) setInventory(JSON.parse(savedInventory));
-
-    const savedSettings = localStorage.getItem('pharmaflow_settings');
-    if (savedSettings) setSettings(JSON.parse(savedSettings));
     
     // Auto-collapse sidebar on small screens
     if (window.innerWidth < 1024) setIsSidebarOpen(false);
@@ -293,8 +284,25 @@ const App: React.FC = () => {
     reader.readAsText(file);
   };
 
+  const handleActivateApp = (key: string) => {
+    setSettings(prev => ({
+      ...prev,
+      isActivated: true,
+      licenseKey: key,
+      activationDate: new Date().toISOString()
+    }));
+  };
+
   if (!user) {
     return <Login onLogin={handleLogin} />;
+  }
+
+  if (!settings.isActivated) {
+    return (
+      <Suspense fallback={<LoadingSpinner />}>
+        <CommercialActivation onActivate={handleActivateApp} />
+      </Suspense>
+    );
   }
 
   const renderContent = () => {
@@ -302,8 +310,8 @@ const App: React.FC = () => {
       <Suspense fallback={<LoadingSpinner />}>
         {(() => {
           switch (activeTab) {
-            case 'dashboard': return <Dashboard />;
-            case 'leads': return <LeadManager />;
+            case 'dashboard': return <Dashboard settings={settings} />;
+            case 'leads': return <LeadManager settings={settings} />;
             case 'manufacturing': return (
               <ManufacturingManager 
                 products={products} 
@@ -318,6 +326,7 @@ const App: React.FC = () => {
             case 'inventory': return (
               <ProductCatalog 
                 products={products} 
+                settings={settings}
                 onAddProduct={handleAddProduct} 
                 onDeleteProduct={handleDeleteProduct}
                 onUpdateStock={handleUpdateStock}

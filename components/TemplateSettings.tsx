@@ -87,9 +87,9 @@ const TemplateSettings: React.FC<TemplateSettingsProps> = ({ settings, onUpdateS
           </div>
         </div>
 
-        {/* Document Prefixes Section */}
+        {/* Document Prefixes & Regional Section */}
         <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-6">
-          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Document Numbering</h3>
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Document & Regional</h3>
           
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -113,11 +113,49 @@ const TemplateSettings: React.FC<TemplateSettingsProps> = ({ settings, onUpdateS
               />
             </div>
           </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Currency Symbol</label>
+            <input 
+              name="currencySymbol"
+              value={localSettings.currencySymbol}
+              onChange={handleChange}
+              className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              placeholder="$"
+            />
+          </div>
           
           <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100">
             <p className="text-xs text-blue-600 leading-relaxed">
               <strong>Pro Tip:</strong> Prefixes help you organize documents by year or department. For example, <code>QUO-2024-</code>.
             </p>
+          </div>
+        </div>
+
+        {/* License Section */}
+        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-6">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">License & Activation</h3>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+              <div>
+                <p className="text-[10px] font-bold text-emerald-600 uppercase">License Status</p>
+                <p className="text-sm font-bold text-emerald-800">Commercial Enterprise Active</p>
+              </div>
+              <span className="text-2xl">✅</span>
+            </div>
+            
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-2">License Key</label>
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-sm font-mono text-slate-600 select-all">
+                {settings.licenseKey || 'N/A'}
+              </div>
+            </div>
+            
+            <div className="flex justify-between text-[10px] font-bold text-slate-400 uppercase px-1">
+              <span>Activated On</span>
+              <span>{settings.activationDate ? new Date(settings.activationDate).toLocaleDateString() : 'N/A'}</span>
+            </div>
           </div>
         </div>
 

@@ -1,9 +1,13 @@
 
 import React, { useState } from 'react';
-import { Lead, LeadStatus } from '../types';
+import { Lead, LeadStatus, CompanySettings } from '../types';
 import { MOCK_LEADS } from '../constants';
 
-const LeadManager: React.FC = () => {
+interface LeadManagerProps {
+  settings: CompanySettings;
+}
+
+const LeadManager: React.FC<LeadManagerProps> = ({ settings }) => {
   const [leads, setLeads] = useState<Lead[]>(MOCK_LEADS);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showOutcomeModal, setShowOutcomeModal] = useState<{leadId: string, type: 'WON' | 'LOST'} | null>(null);
@@ -21,6 +25,8 @@ const LeadManager: React.FC = () => {
       estimatedValue: Number(newLead.estimatedValue) || 0,
       status: LeadStatus.PROSPECT,
       source: newLead.source || 'Direct',
+      agentName: newLead.agentName || 'N/A',
+      commissionPercentage: Number(newLead.commissionPercentage) || 0,
       createdAt: new Date().toISOString().split('T')[0],
     };
     setLeads([lead, ...leads]);
@@ -73,7 +79,7 @@ const LeadManager: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: 'Total Value', value: `$${leads.reduce((acc, l) => acc + l.estimatedValue, 0).toLocaleString()}`, icon: '💰' },
+          { label: 'Total Value', value: `${settings.currencySymbol}${leads.reduce((acc, l) => acc + l.estimatedValue, 0).toLocaleString()}`, icon: '💰' },
           { label: 'Won Leads', value: leads.filter(l => l.status === LeadStatus.WON).length, icon: '✅' },
           { label: 'Lost Leads', value: leads.filter(l => l.status === LeadStatus.LOST).length, icon: '❌' },
           { label: 'Conversion Rate', value: `${Math.round((leads.filter(l => l.status === LeadStatus.WON).length / Math.max(1, leads.filter(l => l.status !== LeadStatus.PROSPECT).length)) * 100)}%`, icon: '📈' },
@@ -93,6 +99,7 @@ const LeadManager: React.FC = () => {
           <thead className="bg-slate-50 border-b border-slate-100">
             <tr>
               <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Lead Info</th>
+              <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Agent & Commission</th>
               <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Contact</th>
               <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Est. Value</th>
               <th className="px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">Status</th>
@@ -107,11 +114,17 @@ const LeadManager: React.FC = () => {
                   <div className="text-xs text-slate-500">Source: {lead.source}</div>
                 </td>
                 <td className="px-6 py-4">
+                  <div className="text-sm font-medium text-slate-700">{lead.agentName || 'N/A'}</div>
+                  <div className="text-xs text-emerald-600 font-bold">
+                    {lead.commissionPercentage}% ({settings.currencySymbol}{((lead.estimatedValue * (lead.commissionPercentage || 0)) / 100).toLocaleString()})
+                  </div>
+                </td>
+                <td className="px-6 py-4">
                   <div className="text-sm font-medium text-slate-700">{lead.contactPerson}</div>
                   <div className="text-xs text-slate-400">{lead.email}</div>
                 </td>
                 <td className="px-6 py-4 text-sm font-bold text-blue-600">
-                  ${lead.estimatedValue.toLocaleString()}
+                  {settings.currencySymbol}{lead.estimatedValue.toLocaleString()}
                 </td>
                 <td className="px-6 py-4">
                   <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${getStatusBadge(lead.status)}`}>
@@ -177,12 +190,32 @@ const LeadManager: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Estimated Value ($)</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Estimated Value ({settings.currencySymbol})</label>
                 <input 
                   type="number" 
                   className="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
                   onChange={(e) => setNewLead({...newLead, estimatedValue: Number(e.target.value)})}
                 />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Agent Name</label>
+                  <input 
+                    type="text" 
+                    className="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder="e.g. Robert Fox"
+                    onChange={(e) => setNewLead({...newLead, agentName: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Commission (%)</label>
+                  <input 
+                    type="number" 
+                    className="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    placeholder="e.g. 5"
+                    onChange={(e) => setNewLead({...newLead, commissionPercentage: Number(e.target.value)})}
+                  />
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>

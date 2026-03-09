@@ -24,6 +24,10 @@ export interface CompanySettings {
   inquiryPrefix: string;
   termsAndConditions: string;
   footerText: string;
+  currencySymbol: string;
+  isActivated: boolean;
+  licenseKey?: string;
+  activationDate?: string;
 }
 
 export interface StockUpdate {
@@ -109,6 +113,8 @@ export interface Lead {
   estimatedValue: number;
   status: LeadStatus;
   source: string;
+  agentName?: string;
+  commissionPercentage?: number;
   outcomeReason?: string;
   createdAt: string;
 }

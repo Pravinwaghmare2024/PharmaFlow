@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
-import { Product } from '../types';
+import { Product, CompanySettings } from '../types';
 
 interface ProductCatalogProps {
   products: Product[];
+  settings: CompanySettings;
   onAddProduct: (product: Product) => void;
   onDeleteProduct: (id: string) => void;
   onUpdateStock: (productId: string, newStock: number) => void;
@@ -13,6 +14,7 @@ interface ProductCatalogProps {
 
 const ProductCatalog: React.FC<ProductCatalogProps> = ({ 
   products, 
+  settings,
   onAddProduct,
   onDeleteProduct,
   onUpdateStock,
@@ -133,7 +135,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
             <div className="p-6 flex-1 flex flex-col">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-bold text-slate-800 text-lg leading-tight group-hover:text-blue-600 transition-colors">{p.name}</h3>
-                <span className="text-blue-600 font-extrabold text-lg">${p.unitPrice.toFixed(2)}</span>
+                <span className="text-blue-600 font-extrabold text-lg">{settings.currencySymbol}{p.unitPrice.toFixed(2)}</span>
               </div>
               <p className="text-xs text-slate-400 mb-4">{p.strength} • {p.dosageForm} • {p.packSize}</p>
               
@@ -304,7 +306,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Unit Price ($)</label>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Unit Price ({settings.currencySymbol})</label>
                   <input 
                     required 
                     type="number"
