@@ -1,24 +1,32 @@
 
 import React, { useState } from 'react';
-import { Inquiry, InquiryStatus, FollowUp, Customer } from '../types';
+import { Inquiry, InquiryStatus, FollowUp, Customer, CompanySettings } from '../types';
 import { generateFollowUpEmail } from '../services/geminiService';
 
 interface InquiryManagerProps {
   inquiries: Inquiry[];
   customers: Customer[];
+  settings: CompanySettings;
   onAddCustomer: (customer: Customer) => void;
   onConvertToQuote?: (inq: Inquiry) => void;
   onAddInquiry: (inq: Inquiry) => void;
   onUpdateInquiry: (inq: Inquiry) => void;
+  onDeleteInquiry: (id: string) => void;
+  onExport: () => void;
+  onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 const InquiryManager: React.FC<InquiryManagerProps> = ({ 
   inquiries, 
   customers,
+  settings,
   onAddCustomer,
   onConvertToQuote, 
   onAddInquiry, 
-  onUpdateInquiry 
+  onUpdateInquiry,
+  onDeleteInquiry,
+  onExport,
+  onImport
 }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showQuickAddCustomer, setShowQuickAddCustomer] = useState(false);
@@ -39,7 +47,7 @@ const InquiryManager: React.FC<InquiryManagerProps> = ({
     
     const customer = customers.find(c => c.id === newInquiry.customerId);
     const inq: Inquiry = {
-      id: `INQ-00${inquiries.length + 1}`,
+      id: `${settings.inquiryPrefix}${Math.floor(1000 + Math.random() * 9000)}`,
       customerId: newInquiry.customerId!,
       customerName: customer?.name || 'Unknown',
       contactPerson: newInquiry.contactPerson || customer?.contactPerson || 'Unknown',
@@ -122,12 +130,29 @@ const InquiryManager: React.FC<InquiryManagerProps> = ({
           <h2 className="text-2xl font-bold text-slate-800">Sales Inquiries</h2>
           <p className="text-slate-500 text-sm">Manage incoming product requests and track follow-ups</p>
         </div>
-        <button 
-          onClick={() => setShowAddModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
-        >
-          + New Inquiry
-        </button>
+        <div className="flex items-center space-x-3">
+          <div className="flex bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
+            <button 
+              onClick={onExport}
+              className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-lg transition-colors flex items-center space-x-2"
+              title="Export to JSON"
+            >
+              <span>📤</span>
+              <span>Export</span>
+            </button>
+            <label className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-lg transition-colors flex items-center space-x-2 cursor-pointer">
+              <span>📥</span>
+              <span>Import</span>
+              <input type="file" accept=".json" onChange={onImport} className="hidden" />
+            </label>
+          </div>
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
+          >
+            + New Inquiry
+          </button>
+        </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
@@ -143,7 +168,7 @@ const InquiryManager: React.FC<InquiryManagerProps> = ({
           </thead>
           <tbody className="divide-y divide-slate-100">
             {inquiries.map((inq) => (
-              <tr key={inq.id} className="hover:bg-slate-50 transition-colors">
+              <tr key={inq.id} className="hover:bg-slate-50 transition-colors group">
                 <td className="px-6 py-4 text-sm font-medium text-slate-900">{inq.id}</td>
                 <td className="px-6 py-4 text-sm text-slate-600">
                   <div className="font-semibold text-slate-800">{inq.customerName}</div>
@@ -167,13 +192,20 @@ const InquiryManager: React.FC<InquiryManagerProps> = ({
                     onClick={() => setSelectedInquiry(inq)}
                     className="text-blue-600 hover:text-blue-800 font-bold text-xs bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
                   >
-                    Details & History
+                    Details
                   </button>
                   <button 
                     onClick={() => onConvertToQuote?.(inq)}
                     className="text-emerald-600 hover:text-emerald-800 font-bold text-xs bg-emerald-50 px-3 py-1.5 rounded-lg transition-colors"
                   >
-                    Create Quote
+                    Quote
+                  </button>
+                  <button 
+                    onClick={() => onDeleteInquiry(inq.id)}
+                    className="text-slate-300 hover:text-rose-600 transition-colors opacity-0 group-hover:opacity-100"
+                    title="Delete Inquiry"
+                  >
+                    ✕
                   </button>
                 </td>
               </tr>

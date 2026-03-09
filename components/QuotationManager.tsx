@@ -8,55 +8,37 @@ interface QuotationManagerProps {
   onClearPrefill?: () => void;
   customers: Customer[];
   products: Product[];
+  quotations: Quotation[];
+  settings: CompanySettings;
+  onAddQuotation: (quo: Quotation) => void;
+  onUpdateQuotation: (quo: Quotation) => void;
+  onDeleteQuotation: (id: string) => void;
   onAddCustomer: (customer: Customer) => void;
+  onExport: () => void;
+  onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
-
-const INITIAL_QUOTATIONS: Quotation[] = [
-  {
-    id: 'QUO-23-001',
-    inquiryId: 'INQ-001',
-    customerId: 'C1',
-    customerName: "St. Mary's General Hospital",
-    date: '2023-11-22',
-    expiryDate: '2023-12-22',
-    items: [
-      { productId: 'P1', productName: 'Amoxicillin 500mg', quantity: 50, unitPrice: 12.50, discount: 5, total: 593.75 }
-    ],
-    totalAmount: 593.75,
-    status: 'Pending Approval',
-    comments: [
-      { id: 'cm-1', author: 'John Doe', text: 'Sent for manager review regarding high discount.', timestamp: '2023-11-22 10:00' }
-    ],
-    attachments: [
-      { id: 'at-1', name: 'Special_Pricing_Justification.pdf', size: '1.2 MB', type: 'application/pdf', status: 'Pending Review', uploadedBy: 'John Doe', uploadedAt: '2023-11-22 10:05' }
-    ]
-  }
-];
 
 const QuotationManager: React.FC<QuotationManagerProps> = ({ 
   prefillData, 
   onClearPrefill,
   customers,
   products,
-  onAddCustomer
+  quotations,
+  settings,
+  onAddQuotation,
+  onUpdateQuotation,
+  onDeleteQuotation,
+  onAddCustomer,
+  onExport,
+  onImport
 }) => {
-  const [quotations, setQuotations] = useState<Quotation[]>(INITIAL_QUOTATIONS);
   const [selectedQuo, setSelectedQuo] = useState<Quotation | null>(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showQuickAddCustomer, setShowQuickAddCustomer] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [companyInfo, setCompanyInfo] = useState({ name: 'PharmaFlow Enterprise', address: '123 Global Biotech Park, NY' });
 
   // Quick Add Customer State
   const [quickCustomer, setQuickCustomer] = useState<Partial<Customer>>({ type: 'Hospital' });
-
-  useEffect(() => {
-    const savedBranding = localStorage.getItem('pharmaflow_branding');
-    if (savedBranding) {
-      const parsed = JSON.parse(savedBranding);
-      setCompanyInfo({ name: parsed.name, address: parsed.address });
-    }
-  }, []);
 
   // New Quotation Form State
   const [formData, setFormData] = useState<Partial<Quotation>>({
@@ -82,7 +64,7 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
 
   const handleDownload = (quo: Quotation) => {
     setIsDownloading(true);
-    const content = generateQuotationText(quo, companyInfo);
+    const content = generateQuotationText(quo, settings);
     // Simulate generation delay
     setTimeout(() => {
       downloadFile(`${quo.id}_PharmaFlow_Quote.txt`, content);
@@ -134,7 +116,7 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
 
     const total = formData.items.reduce((sum, item) => sum + item.total, 0);
     const newQuo: Quotation = {
-      id: `QUO-23-00${quotations.length + 1}`,
+      id: `${settings.quotationPrefix}${Math.floor(100 + Math.random() * 900)}`,
       inquiryId: formData.inquiryId || 'Direct',
       customerId: formData.customerId!,
       customerName: formData.customerName || 'Unknown',
@@ -145,7 +127,7 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
       status: 'Pending Approval'
     };
 
-    setQuotations([newQuo, ...quotations]);
+    onAddQuotation(newQuo);
     setShowCreateModal(false);
     setFormData({ items: [] });
   };
@@ -153,7 +135,7 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
   const updateStatus = (status: Quotation['status']) => {
     if (!selectedQuo) return;
     const updated = { ...selectedQuo, status };
-    setQuotations(quotations.map(q => q.id === selectedQuo.id ? updated : q));
+    onUpdateQuotation(updated);
     setSelectedQuo(updated);
   };
 
@@ -164,17 +146,41 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
           <h2 className="text-2xl font-bold text-slate-800">Sales Quotations</h2>
           <p className="text-slate-500 text-sm">Professional quotes and approval workflows</p>
         </div>
-        <button 
-          onClick={() => setShowCreateModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
-        >
-          + Create Quote
-        </button>
+        <div className="flex items-center space-x-3">
+          <div className="flex bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
+            <button 
+              onClick={onExport}
+              className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-lg transition-colors flex items-center space-x-2"
+              title="Export to JSON"
+            >
+              <span>📤</span>
+              <span>Export</span>
+            </button>
+            <label className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-lg transition-colors flex items-center space-x-2 cursor-pointer">
+              <span>📥</span>
+              <span>Import</span>
+              <input type="file" accept=".json" onChange={onImport} className="hidden" />
+            </label>
+          </div>
+          <button 
+            onClick={() => setShowCreateModal(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors shadow-sm"
+          >
+            + Create Quote
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {quotations.map(q => (
-          <div key={q.id} className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow group">
+          <div key={q.id} className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow group relative">
+            <button 
+              onClick={() => onDeleteQuotation(q.id)}
+              className="absolute top-2 right-2 z-10 text-slate-300 hover:text-rose-500 transition-colors p-1 bg-white/50 backdrop-blur rounded-lg opacity-0 group-hover:opacity-100"
+              title="Delete Quotation"
+            >
+              ✕
+            </button>
             <div className="p-5 border-b border-slate-50 bg-slate-50/50 flex justify-between items-start">
               <div>
                 <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">{q.id}</span>

@@ -1,0 +1,157 @@
+
+import React, { useState, useEffect } from 'react';
+import { CompanySettings } from '../types';
+
+interface TemplateSettingsProps {
+  settings: CompanySettings;
+  onUpdateSettings: (settings: CompanySettings) => void;
+}
+
+const TemplateSettings: React.FC<TemplateSettingsProps> = ({ settings, onUpdateSettings }) => {
+  const [localSettings, setLocalSettings] = useState<CompanySettings>(settings);
+
+  useEffect(() => {
+    setLocalSettings(settings);
+  }, [settings]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setLocalSettings(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = () => {
+    onUpdateSettings(localSettings);
+    alert('Settings saved successfully!');
+  };
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800">Template & Branding</h2>
+          <p className="text-slate-500 text-sm">Customize your inquiries, quotations, and official documents</p>
+        </div>
+        <button 
+          onClick={handleSave}
+          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-100 transition-all active:scale-95"
+        >
+          Save Changes
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {/* Company Info Section */}
+        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-6">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Company Information</h3>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Company Name</label>
+              <input 
+                name="name"
+                value={localSettings.name}
+                onChange={handleChange}
+                className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Address</label>
+              <textarea 
+                name="address"
+                value={localSettings.address}
+                onChange={handleChange}
+                rows={3}
+                className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Email</label>
+                <input 
+                  name="email"
+                  value={localSettings.email || ''}
+                  onChange={handleChange}
+                  className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Phone</label>
+                <input 
+                  name="phone"
+                  value={localSettings.phone || ''}
+                  onChange={handleChange}
+                  className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Document Prefixes Section */}
+        <div className="bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-6">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Document Numbering</h3>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Quotation Prefix</label>
+              <input 
+                name="quotationPrefix"
+                value={localSettings.quotationPrefix}
+                onChange={handleChange}
+                className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="QUO-"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Inquiry Prefix</label>
+              <input 
+                name="inquiryPrefix"
+                value={localSettings.inquiryPrefix}
+                onChange={handleChange}
+                className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="INQ-"
+              />
+            </div>
+          </div>
+          
+          <div className="p-4 bg-blue-50 rounded-2xl border border-blue-100">
+            <p className="text-xs text-blue-600 leading-relaxed">
+              <strong>Pro Tip:</strong> Prefixes help you organize documents by year or department. For example, <code>QUO-2024-</code>.
+            </p>
+          </div>
+        </div>
+
+        {/* Terms & Footer Section */}
+        <div className="md:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-6">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Standard Terms & Footer</h3>
+          
+          <div className="space-y-6">
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Terms and Conditions</label>
+              <textarea 
+                name="termsAndConditions"
+                value={localSettings.termsAndConditions}
+                onChange={handleChange}
+                rows={5}
+                className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="Standard payment terms, validity, etc."
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Footer Text</label>
+              <input 
+                name="footerText"
+                value={localSettings.footerText}
+                onChange={handleChange}
+                className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                placeholder="Thank you for your business!"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default TemplateSettings;

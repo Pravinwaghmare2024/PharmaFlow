@@ -5,9 +5,18 @@ import { Customer } from '../types';
 interface CustomerManagerProps {
   customers: Customer[];
   onAddCustomer: (customer: Customer) => void;
+  onDeleteCustomer: (id: string) => void;
+  onExport: () => void;
+  onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, onAddCustomer }) => {
+const CustomerManager: React.FC<CustomerManagerProps> = ({ 
+  customers, 
+  onAddCustomer, 
+  onDeleteCustomer,
+  onExport,
+  onImport
+}) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [newCustomer, setNewCustomer] = useState<Partial<Customer>>({
     type: 'Hospital'
@@ -39,12 +48,29 @@ const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, onAddCusto
           <h2 className="text-2xl font-bold text-slate-800">Customer Directory</h2>
           <p className="text-slate-500 text-sm">Hospitals, pharmacies, and distributors in your network</p>
         </div>
-        <button 
-          onClick={() => setShowAddModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-100 transition-all active:scale-95"
-        >
-          + Add New Customer
-        </button>
+        <div className="flex items-center space-x-3">
+          <div className="flex bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
+            <button 
+              onClick={onExport}
+              className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-lg transition-colors flex items-center space-x-2"
+              title="Export to JSON"
+            >
+              <span>📤</span>
+              <span>Export</span>
+            </button>
+            <label className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-lg transition-colors flex items-center space-x-2 cursor-pointer">
+              <span>📥</span>
+              <span>Import</span>
+              <input type="file" accept=".json" onChange={onImport} className="hidden" />
+            </label>
+          </div>
+          <button 
+            onClick={() => setShowAddModal(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-blue-100 transition-all active:scale-95"
+          >
+            + Add New Customer
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -60,7 +86,16 @@ const CustomerManager: React.FC<CustomerManagerProps> = ({ customers, onAddCusto
               }`}>
                 {c.type}
               </span>
-              <span className="text-slate-300 font-mono text-[10px]">{c.id}</span>
+              <div className="flex items-center space-x-2">
+                <span className="text-slate-300 font-mono text-[10px]">{c.id}</span>
+                <button 
+                  onClick={() => onDeleteCustomer(c.id)}
+                  className="text-slate-300 hover:text-rose-500 transition-colors p-1"
+                  title="Delete Customer"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
             
             <h3 className="font-bold text-slate-900 text-lg mb-1 group-hover:text-blue-600 transition-colors">{c.name}</h3>

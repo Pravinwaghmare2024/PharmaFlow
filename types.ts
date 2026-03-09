@@ -17,7 +17,22 @@ export interface User {
 export interface CompanySettings {
   name: string;
   address: string;
-  logoUrl: string;
+  logoUrl?: string;
+  email?: string;
+  phone?: string;
+  quotationPrefix: string;
+  inquiryPrefix: string;
+  termsAndConditions: string;
+  footerText: string;
+}
+
+export interface StockUpdate {
+  productId: string;
+  quantity: number;
+  type: 'Addition' | 'Subtraction' | 'Adjustment';
+  batchType: 'Regular' | 'Sample' | 'Urgent' | 'Trial';
+  notes?: string;
+  timestamp: string;
 }
 
 export enum InquiryStatus {

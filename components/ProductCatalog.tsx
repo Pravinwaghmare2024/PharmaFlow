@@ -5,14 +5,32 @@ import { Product } from '../types';
 interface ProductCatalogProps {
   products: Product[];
   onAddProduct: (product: Product) => void;
+  onDeleteProduct: (id: string) => void;
+  onUpdateStock: (productId: string, newStock: number) => void;
+  onExport: () => void;
+  onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const ProductCatalog: React.FC<ProductCatalogProps> = ({ products, onAddProduct }) => {
+const ProductCatalog: React.FC<ProductCatalogProps> = ({ 
+  products, 
+  onAddProduct,
+  onDeleteProduct,
+  onUpdateStock,
+  onExport,
+  onImport
+}) => {
   const [filter, setFilter] = useState('All');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showStockModal, setShowStockModal] = useState<Product | null>(null);
   const [newProduct, setNewProduct] = useState<Partial<Product>>({
     category: 'Antibiotics',
     dosageForm: 'Tablet'
+  });
+
+  const [stockUpdate, setStockUpdate] = useState({
+    quantity: 0,
+    type: 'Addition' as 'Addition' | 'Subtraction',
+    batchType: 'Regular' as 'Regular' | 'Sample' | 'Urgent' | 'Trial'
   });
 
   const filteredProducts = filter === 'All' 
@@ -39,6 +57,18 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ products, onAddProduct 
     setNewProduct({ category: 'Antibiotics', dosageForm: 'Tablet' });
   };
 
+  const handleStockUpdate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!showStockModal) return;
+
+    const change = stockUpdate.type === 'Addition' ? stockUpdate.quantity : -stockUpdate.quantity;
+    const newStock = Math.max(0, showStockModal.stock + change);
+    
+    onUpdateStock(showStockModal.id, newStock);
+    setShowStockModal(null);
+    setStockUpdate({ quantity: 0, type: 'Addition', batchType: 'Regular' });
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex justify-between items-center">
@@ -47,6 +77,21 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ products, onAddProduct 
           <p className="text-slate-500 text-sm">Enterprise drug inventory and pricing index</p>
         </div>
         <div className="flex items-center space-x-4">
+          <div className="flex bg-white border border-slate-200 rounded-xl p-1 shadow-sm">
+            <button 
+              onClick={onExport}
+              className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-lg transition-colors flex items-center space-x-2"
+              title="Export to JSON"
+            >
+              <span>📤</span>
+              <span>Export</span>
+            </button>
+            <label className="px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-50 rounded-lg transition-colors flex items-center space-x-2 cursor-pointer">
+              <span>📥</span>
+              <span>Import</span>
+              <input type="file" accept=".json" onChange={onImport} className="hidden" />
+            </label>
+          </div>
           <div className="flex bg-slate-200 p-1 rounded-xl">
             {['All', 'Antibiotics', 'Chronic', 'OTC', 'Specialty'].map((cat) => (
               <button 
@@ -69,12 +114,19 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ products, onAddProduct 
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredProducts.map(p => (
-          <div key={p.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-xl transition-all group flex flex-col">
+          <div key={p.id} className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-xl transition-all group flex flex-col relative">
+            <button 
+              onClick={() => onDeleteProduct(p.id)}
+              className="absolute top-2 right-2 z-10 text-slate-300 hover:text-rose-500 transition-colors p-1 bg-white/50 backdrop-blur rounded-lg opacity-0 group-hover:opacity-100"
+              title="Delete Product"
+            >
+              ✕
+            </button>
             <div className="h-32 bg-slate-50 relative flex items-center justify-center">
               <span className="text-5xl group-hover:scale-110 transition-transform duration-300">
                 {p.category === 'Antibiotics' ? '💊' : p.category === 'Chronic' ? '🩸' : p.category === 'OTC' ? '🛒' : '🧪'}
               </span>
-              <span className="absolute top-4 right-4 bg-white/80 backdrop-blur px-2 py-1 rounded text-[10px] font-bold text-slate-500 border border-slate-100">
+              <span className="absolute top-4 left-4 bg-white/80 backdrop-blur px-2 py-1 rounded text-[10px] font-bold text-slate-500 border border-slate-100">
                 {p.id}
               </span>
             </div>
@@ -98,7 +150,10 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ products, onAddProduct 
                     style={{ width: `${Math.min(100, (p.stock / 5000) * 100)}%` }}
                   ></div>
                 </div>
-                <button className="w-full border border-slate-200 text-slate-700 py-2 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors group-hover:border-blue-200">
+                <button 
+                  onClick={() => setShowStockModal(p)}
+                  className="w-full border border-slate-200 text-slate-700 py-2 rounded-xl text-xs font-bold hover:bg-slate-50 transition-colors group-hover:border-blue-200"
+                >
                   Update Pricing / Stock
                 </button>
               </div>
@@ -106,6 +161,72 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({ products, onAddProduct 
           </div>
         ))}
       </div>
+
+      {/* Stock Update Modal */}
+      {showStockModal && (
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+          <form onSubmit={handleStockUpdate} className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95">
+            <div className="p-6 border-b border-slate-100 bg-slate-50 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-slate-800">Update Stock: {showStockModal.name}</h3>
+              <button type="button" onClick={() => setShowStockModal(null)} className="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            <div className="p-8 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Update Type</label>
+                  <select 
+                    className="w-full border border-slate-200 rounded-xl p-3 text-sm"
+                    value={stockUpdate.type}
+                    onChange={e => setStockUpdate({...stockUpdate, type: e.target.value as any})}
+                  >
+                    <option value="Addition">Addition (+)</option>
+                    <option value="Subtraction">Subtraction (-)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Quantity</label>
+                  <input 
+                    type="number"
+                    required
+                    className="w-full border border-slate-200 rounded-xl p-3 text-sm"
+                    value={stockUpdate.quantity || ''}
+                    onChange={e => setStockUpdate({...stockUpdate, quantity: Number(e.target.value)})}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Batch Type</label>
+                <select 
+                  className="w-full border border-slate-200 rounded-xl p-3 text-sm"
+                  value={stockUpdate.batchType}
+                  onChange={e => setStockUpdate({...stockUpdate, batchType: e.target.value as any})}
+                >
+                  <option value="Regular">Regular Production</option>
+                  <option value="Sample">Sample / Promo</option>
+                  <option value="Urgent">Urgent / Emergency</option>
+                  <option value="Trial">R&D / Trial</option>
+                </select>
+              </div>
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="flex justify-between text-xs font-bold">
+                  <span className="text-slate-500 uppercase">Current Stock</span>
+                  <span className="text-slate-800">{showStockModal.stock} units</span>
+                </div>
+                <div className="flex justify-between text-xs font-bold mt-2">
+                  <span className="text-slate-500 uppercase">New Estimated Stock</span>
+                  <span className="text-blue-600">
+                    {stockUpdate.type === 'Addition' ? showStockModal.stock + stockUpdate.quantity : Math.max(0, showStockModal.stock - stockUpdate.quantity)} units
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="p-6 bg-slate-50 flex space-x-3">
+              <button type="button" onClick={() => setShowStockModal(null)} className="flex-1 py-2 text-slate-500 font-bold text-xs uppercase">Cancel</button>
+              <button type="submit" className="flex-1 py-2 bg-slate-900 text-white rounded-xl font-bold text-xs uppercase shadow-lg">Confirm Update</button>
+            </div>
+          </form>
+        </div>
+      )}
 
       {showAddModal && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">

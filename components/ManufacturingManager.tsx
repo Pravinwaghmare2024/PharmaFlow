@@ -37,11 +37,23 @@ const INITIAL_BATCHES: Batch[] = [
 
 interface ManufacturingManagerProps {
   products: Product[];
+  batches: Batch[];
+  inventory: InventoryItem[];
+  onAddBatch: (batch: Batch) => void;
+  onDeleteBatch: (id: string) => void;
+  onAddInventory: (item: InventoryItem) => void;
+  onDeleteInventory: (id: string) => void;
 }
 
-const ManufacturingManager: React.FC<ManufacturingManagerProps> = ({ products }) => {
-  const [batches, setBatches] = useState<Batch[]>(INITIAL_BATCHES);
-  const [inventory, setInventory] = useState<InventoryItem[]>(INITIAL_INVENTORY);
+const ManufacturingManager: React.FC<ManufacturingManagerProps> = ({ 
+  products, 
+  batches, 
+  inventory, 
+  onAddBatch, 
+  onDeleteBatch, 
+  onAddInventory, 
+  onDeleteInventory 
+}) => {
   const [showAddBatch, setShowAddBatch] = useState(false);
   const [showAddStock, setShowAddStock] = useState(false);
 
@@ -69,7 +81,7 @@ const ManufacturingManager: React.FC<ManufacturingManagerProps> = ({ products })
       manufacturingDate: new Date().toISOString().split('T')[0],
       expiryDate: new Date(Date.now() + 730 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
     };
-    setBatches([batch, ...batches]);
+    onAddBatch(batch);
     setShowAddBatch(false);
   };
 
@@ -83,7 +95,7 @@ const ManufacturingManager: React.FC<ManufacturingManagerProps> = ({ products })
       unit: newStock.unit as UnitType,
       minThreshold: Number(newStock.minThreshold) || 10
     };
-    setInventory([item, ...inventory]);
+    onAddInventory(item);
     setShowAddStock(false);
   };
 
@@ -127,7 +139,14 @@ const ManufacturingManager: React.FC<ManufacturingManagerProps> = ({ products })
             <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">Current Inventory</h3>
             <div className="space-y-6">
               {inventory.map(item => (
-                <div key={item.id} className="group">
+                <div key={item.id} className="group relative">
+                  <button 
+                    onClick={() => onDeleteInventory(item.id)}
+                    className="absolute -right-2 top-0 text-slate-300 hover:text-rose-500 opacity-0 group-hover:opacity-100 transition-all p-1"
+                    title="Delete Item"
+                  >
+                    ✕
+                  </button>
                   <div className="flex justify-between items-start mb-2">
                     <div>
                       <h4 className="font-bold text-slate-800 text-sm group-hover:text-blue-600 transition-colors">{item.name}</h4>
@@ -170,6 +189,7 @@ const ManufacturingManager: React.FC<ManufacturingManagerProps> = ({ products })
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Yield</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status</th>
                   <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Dates</th>
+                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -193,6 +213,15 @@ const ManufacturingManager: React.FC<ManufacturingManagerProps> = ({ products })
                     <td className="px-6 py-4">
                       <div className="text-[10px] text-slate-500">MFG: {batch.manufacturingDate}</div>
                       <div className="text-[10px] text-rose-400 font-bold">EXP: {batch.expiryDate}</div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button 
+                        onClick={() => onDeleteBatch(batch.id)}
+                        className="text-slate-300 hover:text-rose-500 transition-colors p-2"
+                        title="Delete Batch"
+                      >
+                        ✕
+                      </button>
                     </td>
                   </tr>
                 ))}
