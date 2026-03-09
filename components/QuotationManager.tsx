@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Quotation, Comment, Attachment, Inquiry, QuotationItem, CompanySettings, Customer, Product } from '../types';
 import { downloadFile, generateQuotationText } from '../utils/downloadUtils';
+import QuotationPrintable from './QuotationPrintable';
 
 interface QuotationManagerProps {
   prefillData?: Partial<Inquiry> | null;
@@ -36,6 +37,7 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showQuickAddCustomer, setShowQuickAddCustomer] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [printQuo, setPrintQuo] = useState<Quotation | null>(null);
 
   // Quick Add Customer State
   const [quickCustomer, setQuickCustomer] = useState<Partial<Customer>>({ type: 'Hospital' });
@@ -72,6 +74,14 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
     }, 800);
   };
 
+  const handlePrint = (quo: Quotation) => {
+    setPrintQuo(quo);
+    // Give react time to render the printable component
+    setTimeout(() => {
+      window.print();
+    }, 100);
+  };
+
   const handleAddItem = (productId: string) => {
     const product = products.find(p => p.id === productId);
     if (!product) return;
@@ -79,6 +89,7 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
     const newItem: QuotationItem = {
       productId: product.id,
       productName: product.name,
+      pharmacopoeia: product.pharmacopoeia,
       quantity: 10,
       unitPrice: product.unitPrice,
       discount: 0,
@@ -140,7 +151,7 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 no-print">
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold text-slate-800">Sales Quotations</h2>
@@ -200,7 +211,7 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
               </div>
               <div className="flex justify-between text-sm">
                 <span className="text-slate-500">Total Amount</span>
-                <span className="text-blue-600 font-bold">${q.totalAmount.toLocaleString()}</span>
+                <span className="text-blue-600 font-bold">{settings.currencySymbol}{q.totalAmount.toLocaleString()}</span>
               </div>
             </div>
             <div className="p-4 bg-slate-50 flex space-x-2">
@@ -216,6 +227,13 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
                 title="Download Quote"
               >
                 📥
+              </button>
+              <button 
+                onClick={() => handlePrint(q)}
+                className="px-3 bg-white border border-slate-200 text-slate-600 py-1.5 rounded-lg text-sm hover:text-indigo-600 transition-colors"
+                title="Print Quote"
+              >
+                🖨️
               </button>
             </div>
           </div>
@@ -287,7 +305,10 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
                   <tbody className="divide-y divide-slate-50">
                     {formData.items?.map((item, idx) => (
                       <tr key={idx}>
-                        <td className="py-4 font-medium">{item.productName}</td>
+                        <td className="py-4 font-medium">
+                          {item.productName}
+                          {item.pharmacopoeia && <span className="text-xs text-slate-400 ml-2">({item.pharmacopoeia})</span>}
+                        </td>
                         <td className="py-4">
                           <input 
                             type="number" 
@@ -301,8 +322,8 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
                             }}
                           />
                         </td>
-                        <td className="py-4">${item.unitPrice}</td>
-                        <td className="py-4 font-bold text-blue-600">${item.total.toLocaleString()}</td>
+                        <td className="py-4">{settings.currencySymbol}{item.unitPrice}</td>
+                        <td className="py-4 font-bold text-blue-600">{settings.currencySymbol}{item.total.toLocaleString()}</td>
                         <td className="py-4 text-right">
                           <button 
                             className="text-rose-400 hover:text-rose-600"
@@ -326,7 +347,7 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
                     <tr>
                       <td colSpan={3} className="py-4 text-right font-bold text-slate-500 uppercase text-xs">Grand Total</td>
                       <td className="py-4 font-extrabold text-blue-600 text-xl">
-                        ${formData.items?.reduce((s, i) => s + i.total, 0).toLocaleString()}
+                        {settings.currencySymbol}{formData.items?.reduce((s, i) => s + i.total, 0).toLocaleString()}
                       </td>
                       <td></td>
                     </tr>
@@ -374,7 +395,7 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-400 uppercase">Total Value</label>
-                  <div className="mt-1 font-bold text-blue-600 text-lg">${selectedQuo.totalAmount.toLocaleString()}</div>
+                  <div className="mt-1 font-bold text-blue-600 text-lg">{settings.currencySymbol}{selectedQuo.totalAmount.toLocaleString()}</div>
                 </div>
               </section>
 
@@ -384,10 +405,13 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
                   {selectedQuo.items.map((item, idx) => (
                     <div key={idx} className="flex justify-between p-3 border rounded-xl bg-slate-50/50">
                       <div>
-                        <p className="font-bold text-slate-800">{item.productName}</p>
-                        <p className="text-xs text-slate-500">Qty: {item.quantity} × ${item.unitPrice}</p>
+                        <p className="font-bold text-slate-800">
+                          {item.productName}
+                          {item.pharmacopoeia && <span className="text-xs font-normal text-slate-400 ml-2">({item.pharmacopoeia})</span>}
+                        </p>
+                        <p className="text-xs text-slate-500">Qty: {item.quantity} × {settings.currencySymbol}{item.unitPrice}</p>
                       </div>
-                      <p className="font-bold text-blue-600">${item.total.toLocaleString()}</p>
+                      <p className="font-bold text-blue-600">{settings.currencySymbol}{item.total.toLocaleString()}</p>
                     </div>
                   ))}
                 </div>
@@ -396,11 +420,18 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
 
             <div className="p-6 border-t border-slate-100 bg-slate-50 flex space-x-4">
               <button 
+                onClick={() => handlePrint(selectedQuo)}
+                className="px-4 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center justify-center"
+                title="Print this quotation"
+              >
+                🖨️ Print
+              </button>
+              <button 
                 onClick={() => handleDownload(selectedQuo)}
                 disabled={isDownloading}
                 className="flex-1 py-3 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center justify-center"
               >
-                {isDownloading ? 'Generating...' : '📄 Download Formal Quote'}
+                {isDownloading ? 'Generating...' : '📄 Download Text'}
               </button>
               <button 
                 onClick={() => updateStatus('Approved')}
@@ -475,6 +506,10 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
             </div>
           </form>
         </div>
+      )}
+      {/* Printable Component (Hidden from UI, visible in print) */}
+      {printQuo && (
+        <QuotationPrintable quotation={printQuo} settings={settings} />
       )}
     </div>
   );

@@ -24,6 +24,7 @@ export const MOCK_PRODUCTS = [
   { id: 'P4', name: 'Metformin 500mg', dosageForm: 'Tablet', strength: '500mg', packSize: '30s', unitPrice: 4.50, category: 'Chronic', stock: 2100 },
   { id: 'P5', name: 'Azithromycin 250mg', dosageForm: 'Tablet', strength: '250mg', packSize: '6s', unitPrice: 15.00, category: 'Antibiotics', stock: 450 },
   { id: 'P6', name: 'Insulin Glargine', dosageForm: 'Injection', strength: '100U/ml', packSize: '3ml Pen', unitPrice: 45.00, category: 'Specialty', stock: 120 },
+  { id: 'P7', name: 'Paracetamol Bulk Powder', dosageForm: 'Powder', strength: '99%', packSize: '25kg Drum', unitPrice: 450.00, category: 'OTC', stock: 15, isBulk: true, bulkUnit: 'KG', bulkQuantity: 25 },
 ];
 
 export const MOCK_LEADS = [

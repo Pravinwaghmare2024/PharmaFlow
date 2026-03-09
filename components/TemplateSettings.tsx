@@ -19,6 +19,24 @@ const TemplateSettings: React.FC<TemplateSettingsProps> = ({ settings, onUpdateS
     setLocalSettings(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleAddItem = (field: 'categories' | 'pharmacopoeias', value: string) => {
+    if (!value.trim()) return;
+    const items = localSettings[field] || [];
+    if (items.includes(value.trim())) return;
+    setLocalSettings(prev => ({
+      ...prev,
+      [field]: [...items, value.trim()]
+    }));
+  };
+
+  const handleRemoveItem = (field: 'categories' | 'pharmacopoeias', index: number) => {
+    const items = localSettings[field] || [];
+    setLocalSettings(prev => ({
+      ...prev,
+      [field]: items.filter((_, i) => i !== index)
+    }));
+  };
+
   const handleSave = () => {
     onUpdateSettings(localSettings);
     alert('Settings saved successfully!');
@@ -129,6 +147,85 @@ const TemplateSettings: React.FC<TemplateSettingsProps> = ({ settings, onUpdateS
             <p className="text-xs text-blue-600 leading-relaxed">
               <strong>Pro Tip:</strong> Prefixes help you organize documents by year or department. For example, <code>QUO-2024-</code>.
             </p>
+          </div>
+        </div>
+
+        {/* Product Customization Section */}
+        <div className="md:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-slate-100 space-y-8">
+          <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Product Customization</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Categories Management */}
+            <div className="space-y-4">
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Product Categories</label>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {(localSettings.categories || []).map((cat, i) => (
+                  <span key={i} className="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-2 border border-blue-100">
+                    <span>{cat}</span>
+                    <button onClick={() => handleRemoveItem('categories', i)} className="hover:text-blue-800">✕</button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex space-x-2">
+                <input 
+                  id="new-category"
+                  className="flex-1 border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Add new category..."
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleAddItem('categories', (e.target as HTMLInputElement).value);
+                      (e.target as HTMLInputElement).value = '';
+                    }
+                  }}
+                />
+                <button 
+                  onClick={() => {
+                    const input = document.getElementById('new-category') as HTMLInputElement;
+                    handleAddItem('categories', input.value);
+                    input.value = '';
+                  }}
+                  className="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+
+            {/* Pharmacopoeias Management */}
+            <div className="space-y-4">
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Pharmacopoeia Options (IP, BP, USP, etc.)</label>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {(localSettings.pharmacopoeias || []).map((p, i) => (
+                  <span key={i} className="bg-emerald-50 text-emerald-600 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-2 border border-emerald-100">
+                    <span>{p}</span>
+                    <button onClick={() => handleRemoveItem('pharmacopoeias', i)} className="hover:text-emerald-800">✕</button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex space-x-2">
+                <input 
+                  id="new-pharmacopoeia"
+                  className="flex-1 border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Add new pharmacopoeia..."
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleAddItem('pharmacopoeias', (e.target as HTMLInputElement).value);
+                      (e.target as HTMLInputElement).value = '';
+                    }
+                  }}
+                />
+                <button 
+                  onClick={() => {
+                    const input = document.getElementById('new-pharmacopoeia') as HTMLInputElement;
+                    handleAddItem('pharmacopoeias', input.value);
+                    input.value = '';
+                  }}
+                  className="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 

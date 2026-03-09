@@ -25,6 +25,8 @@ export interface CompanySettings {
   termsAndConditions: string;
   footerText: string;
   currencySymbol: string;
+  categories: string[];
+  pharmacopoeias: string[];
   isActivated: boolean;
   licenseKey?: string;
   activationDate?: string;
@@ -136,8 +138,12 @@ export interface Product {
   strength: string;
   packSize: string;
   unitPrice: number;
-  category: 'Antibiotics' | 'Chronic' | 'OTC' | 'Specialty';
+  category: string;
+  pharmacopoeia?: string;
   stock: number;
+  isBulk?: boolean;
+  bulkUnit?: string;
+  bulkQuantity?: number;
 }
 
 export interface FollowUp {
@@ -179,6 +185,7 @@ export interface Quotation {
 export interface QuotationItem {
   productId: string;
   productName: string;
+  pharmacopoeia?: string;
   quantity: number;
   unitPrice: number;
   discount: number;

@@ -14,9 +14,10 @@ export const downloadFile = (filename: string, content: string, mimeType: string
 };
 
 export const generateQuotationText = (quo: any, settings: CompanySettings) => {
-  const lineItems = quo.items.map((item: any) => 
-    `${item.productName.padEnd(30)} | Qty: ${item.quantity.toString().padEnd(5)} | Price: ${settings.currencySymbol}${item.unitPrice.toFixed(2).padEnd(8)} | Total: ${settings.currencySymbol}${item.total.toFixed(2)}`
-  ).join('\n');
+  const lineItems = quo.items.map((item: any) => {
+    const name = item.pharmacopoeia ? `${item.productName} (${item.pharmacopoeia})` : item.productName;
+    return `${name.padEnd(30)} | Qty: ${item.quantity.toString().padEnd(5)} | Price: ${settings.currencySymbol}${item.unitPrice.toFixed(2).padEnd(8)} | Total: ${settings.currencySymbol}${item.total.toFixed(2)}`;
+  }).join('\n');
 
   return `
 ================================================================================

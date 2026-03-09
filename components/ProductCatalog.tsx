@@ -25,8 +25,9 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
   const [showAddModal, setShowAddModal] = useState(false);
   const [showStockModal, setShowStockModal] = useState<Product | null>(null);
   const [newProduct, setNewProduct] = useState<Partial<Product>>({
-    category: 'Antibiotics',
-    dosageForm: 'Tablet'
+    category: settings.categories?.[0] || 'Antibiotics',
+    dosageForm: 'Tablet',
+    pharmacopoeia: settings.pharmacopoeias?.[0] || 'IP'
   });
 
   const [stockUpdate, setStockUpdate] = useState({
@@ -50,13 +51,21 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
       strength: newProduct.strength!,
       packSize: newProduct.packSize || '10x10',
       unitPrice: Number(newProduct.unitPrice),
-      category: newProduct.category as any || 'Antibiotics',
+      category: newProduct.category || settings.categories?.[0] || 'Antibiotics',
+      pharmacopoeia: newProduct.pharmacopoeia || settings.pharmacopoeias?.[0] || 'IP',
       stock: Number(newProduct.stock) || 0,
+      isBulk: newProduct.isBulk || false,
+      bulkUnit: newProduct.bulkUnit,
+      bulkQuantity: newProduct.bulkQuantity ? Number(newProduct.bulkQuantity) : undefined,
     };
 
     onAddProduct(product);
     setShowAddModal(false);
-    setNewProduct({ category: 'Antibiotics', dosageForm: 'Tablet' });
+    setNewProduct({ 
+      category: settings.categories?.[0] || 'Antibiotics', 
+      dosageForm: 'Tablet',
+      pharmacopoeia: settings.pharmacopoeias?.[0] || 'IP'
+    });
   };
 
   const handleStockUpdate = (e: React.FormEvent) => {
@@ -95,7 +104,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
             </label>
           </div>
           <div className="flex bg-slate-200 p-1 rounded-xl">
-            {['All', 'Antibiotics', 'Chronic', 'OTC', 'Specialty'].map((cat) => (
+            {['All', ...(settings.categories || [])].map((cat) => (
               <button 
                 key={cat}
                 onClick={() => setFilter(cat)}
@@ -134,10 +143,18 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
             </div>
             <div className="p-6 flex-1 flex flex-col">
               <div className="flex justify-between items-start mb-2">
-                <h3 className="font-bold text-slate-800 text-lg leading-tight group-hover:text-blue-600 transition-colors">{p.name}</h3>
+                <h3 className="font-bold text-slate-800 text-lg leading-tight group-hover:text-blue-600 transition-colors">
+                  {p.name} {p.pharmacopoeia && <span className="text-xs font-normal text-slate-400">({p.pharmacopoeia})</span>}
+                </h3>
                 <span className="text-blue-600 font-extrabold text-lg">{settings.currencySymbol}{p.unitPrice.toFixed(2)}</span>
               </div>
-              <p className="text-xs text-slate-400 mb-4">{p.strength} • {p.dosageForm} • {p.packSize}</p>
+              <p className="text-xs text-slate-400 mb-2">{p.strength} • {p.dosageForm} • {p.packSize}</p>
+              {p.isBulk && (
+                <div className="mb-4 flex items-center space-x-2">
+                  <span className="bg-amber-50 text-amber-600 text-[10px] font-bold px-2 py-0.5 rounded border border-amber-100 uppercase">Bulk Product</span>
+                  <span className="text-[10px] text-slate-500 font-medium">{p.bulkQuantity} {p.bulkUnit} per unit</span>
+                </div>
+              )}
               
               <div className="mt-auto space-y-4">
                 <div className="flex justify-between items-center text-xs">
@@ -173,6 +190,17 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
               <button type="button" onClick={() => setShowStockModal(null)} className="text-slate-400 hover:text-slate-600">✕</button>
             </div>
             <div className="p-8 space-y-6">
+              {showStockModal.isBulk && (
+                <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <span className="text-2xl">📦</span>
+                    <div>
+                      <p className="text-[10px] font-bold text-amber-600 uppercase">Bulk Packaging</p>
+                      <p className="text-xs font-medium text-amber-800">{showStockModal.bulkQuantity} {showStockModal.bulkUnit} per unit</p>
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-[10px] font-bold text-slate-400 uppercase mb-2">Update Type</label>
@@ -258,12 +286,24 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
                   <select 
                     className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
                     value={newProduct.category}
-                    onChange={e => setNewProduct({...newProduct, category: e.target.value as any})}
+                    onChange={e => setNewProduct({...newProduct, category: e.target.value})}
                   >
-                    <option value="Antibiotics">Antibiotics</option>
-                    <option value="Chronic">Chronic</option>
-                    <option value="OTC">OTC</option>
-                    <option value="Specialty">Specialty</option>
+                    { (settings.categories || []).map(cat => (
+                      <option key={cat} value={cat}>{cat}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Pharmacopoeia</label>
+                  <select 
+                    className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                    value={newProduct.pharmacopoeia}
+                    onChange={e => setNewProduct({...newProduct, pharmacopoeia: e.target.value})}
+                  >
+                    <option value="">None</option>
+                    { (settings.pharmacopoeias || []).map(p => (
+                      <option key={p} value={p}>{p}</option>
+                    ))}
                   </select>
                 </div>
                 <div>
@@ -327,6 +367,48 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
                     onChange={e => setNewProduct({...newProduct, stock: Number(e.target.value)})}
                   />
                 </div>
+              </div>
+
+              <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-4">
+                <div className="flex items-center space-x-3">
+                  <input 
+                    type="checkbox"
+                    id="isBulk"
+                    className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                    checked={newProduct.isBulk || false}
+                    onChange={e => setNewProduct({...newProduct, isBulk: e.target.checked})}
+                  />
+                  <label htmlFor="isBulk" className="text-xs font-bold text-slate-700 uppercase tracking-wider cursor-pointer">Bulk Product Packaging</label>
+                </div>
+
+                {newProduct.isBulk && (
+                  <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Bulk Unit</label>
+                      <select 
+                        className="w-full border border-slate-200 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                        value={newProduct.bulkUnit || 'KG'}
+                        onChange={e => setNewProduct({...newProduct, bulkUnit: e.target.value})}
+                      >
+                        <option value="KG">KG</option>
+                        <option value="DRUM">DRUM</option>
+                        <option value="BAG">BAG</option>
+                        <option value="LITER">LITER</option>
+                        <option value="TON">TON</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 ml-1">Qty per Unit</label>
+                      <input 
+                        type="number"
+                        className="w-full border border-slate-200 rounded-xl p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                        placeholder="e.g. 25"
+                        value={newProduct.bulkQuantity || ''}
+                        onChange={e => setNewProduct({...newProduct, bulkQuantity: Number(e.target.value)})}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

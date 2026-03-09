@@ -28,6 +28,8 @@ const INITIAL_SETTINGS: CompanySettings = {
   termsAndConditions: '1. Payment within 30 days. 2. Goods once sold are not returnable. 3. Subject to jurisdiction of New York courts.',
   footerText: 'PharmaFlow - Empowering Healthcare through Innovation',
   currencySymbol: '$',
+  categories: ['Antibiotics', 'Chronic', 'OTC', 'Specialty'],
+  pharmacopoeias: ['IP', 'BP', 'USP', 'EP', 'JP'],
   isActivated: false
 };
 
@@ -115,7 +117,13 @@ const App: React.FC = () => {
   });
   const [settings, setSettings] = useState<CompanySettings>(() => {
     const saved = localStorage.getItem('pharmaflow_settings');
-    return saved ? JSON.parse(saved) : INITIAL_SETTINGS;
+    if (!saved) return INITIAL_SETTINGS;
+    try {
+      const parsed = JSON.parse(saved);
+      return { ...INITIAL_SETTINGS, ...parsed };
+    } catch (e) {
+      return INITIAL_SETTINGS;
+    }
   });
 
   useEffect(() => {
@@ -393,17 +401,19 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex bg-slate-50 relative overflow-x-hidden">
-      <Sidebar 
-        activeTab={activeTab} 
-        setActiveTab={setActiveTab} 
-        user={user} 
-        onLogout={handleLogout} 
-        isOpen={isSidebarOpen}
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-      />
+      <div className="no-print">
+        <Sidebar 
+          activeTab={activeTab} 
+          setActiveTab={setActiveTab} 
+          user={user} 
+          onLogout={handleLogout} 
+          isOpen={isSidebarOpen}
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        />
+      </div>
       
       <main className={`flex-1 transition-all duration-300 ease-in-out ${isSidebarOpen ? 'ml-64' : 'ml-0'} p-8 max-w-7xl mx-auto`}>
-        <header className="mb-8 flex justify-between items-center">
+        <header className="mb-8 flex justify-between items-center no-print">
           <div className="flex items-center space-x-4">
             {!isSidebarOpen && (
               <button 
