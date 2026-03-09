@@ -22,6 +22,7 @@ const CommercialActivation = lazy(() => import('./components/CommercialActivatio
 
 const INITIAL_SETTINGS: CompanySettings = {
   name: 'PharmaFlow Enterprise',
+  logoUrl: 'https://cdn-icons-png.flaticon.com/512/3022/3022240.png',
   address: '123 Global Biotech Park, NY',
   quotationPrefix: 'QUO-23-',
   inquiryPrefix: 'INQ-',
@@ -30,6 +31,7 @@ const INITIAL_SETTINGS: CompanySettings = {
   currencySymbol: '$',
   categories: ['Antibiotics', 'Chronic', 'OTC', 'Specialty'],
   pharmacopoeias: ['IP', 'BP', 'USP', 'EP', 'JP'],
+  dosageForms: ['Tablet', 'Capsule', 'Injection', 'Syrup', 'Ointment', 'Cream', 'Gel', 'Powder'],
   isActivated: false
 };
 

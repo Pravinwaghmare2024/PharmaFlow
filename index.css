@@ -8,6 +8,15 @@ body {
   display: none;
 }
 
+.pdf-export-container {
+  position: fixed;
+  left: -9999px;
+  top: 0;
+  width: 800px; /* Standard A4 width approx */
+  display: block !important;
+  background: white;
+}
+
 @media print {
   .no-print {
     display: none !important;

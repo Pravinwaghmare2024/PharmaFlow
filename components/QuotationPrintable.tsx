@@ -11,12 +11,22 @@ const QuotationPrintable: React.FC<QuotationPrintableProps> = ({ quotation, sett
   return (
     <div className="print-only p-12 bg-white text-slate-900 font-sans" id="printable-quotation">
       <div className="flex justify-between items-start border-b-2 border-slate-900 pb-8 mb-8">
-        <div>
-          <h1 className="text-4xl font-black uppercase tracking-tighter text-slate-900">{settings.name}</h1>
-          <p className="text-sm text-slate-600 mt-2 max-w-xs">{settings.address}</p>
-          <div className="mt-4 space-y-1 text-xs font-bold text-slate-500">
-            {settings.email && <p>Email: {settings.email}</p>}
-            {settings.phone && <p>Phone: {settings.phone}</p>}
+        <div className="flex items-start space-x-6">
+          {settings.logoUrl && (
+            <img 
+              src={settings.logoUrl} 
+              alt="Logo" 
+              className="w-20 h-20 object-contain"
+              referrerPolicy="no-referrer"
+            />
+          )}
+          <div>
+            <h1 className="text-4xl font-black uppercase tracking-tighter text-slate-900">{settings.name}</h1>
+            <p className="text-sm text-slate-600 mt-2 max-w-xs">{settings.address}</p>
+            <div className="mt-4 space-y-1 text-xs font-bold text-slate-500">
+              {settings.email && <p>Email: {settings.email}</p>}
+              {settings.phone && <p>Phone: {settings.phone}</p>}
+            </div>
           </div>
         </div>
         <div className="text-right">

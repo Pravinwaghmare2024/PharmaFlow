@@ -27,6 +27,7 @@ export interface CompanySettings {
   currencySymbol: string;
   categories: string[];
   pharmacopoeias: string[];
+  dosageForms: string[];
   isActivated: boolean;
   licenseKey?: string;
   activationDate?: string;

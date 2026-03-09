@@ -19,7 +19,7 @@ const TemplateSettings: React.FC<TemplateSettingsProps> = ({ settings, onUpdateS
     setLocalSettings(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleAddItem = (field: 'categories' | 'pharmacopoeias', value: string) => {
+  const handleAddItem = (field: 'categories' | 'pharmacopoeias' | 'dosageForms', value: string) => {
     if (!value.trim()) return;
     const items = localSettings[field] || [];
     if (items.includes(value.trim())) return;
@@ -29,7 +29,7 @@ const TemplateSettings: React.FC<TemplateSettingsProps> = ({ settings, onUpdateS
     }));
   };
 
-  const handleRemoveItem = (field: 'categories' | 'pharmacopoeias', index: number) => {
+  const handleRemoveItem = (field: 'categories' | 'pharmacopoeias' | 'dosageForms', index: number) => {
     const items = localSettings[field] || [];
     setLocalSettings(prev => ({
       ...prev,
@@ -69,6 +69,16 @@ const TemplateSettings: React.FC<TemplateSettingsProps> = ({ settings, onUpdateS
                 name="name"
                 value={localSettings.name}
                 onChange={handleChange}
+                className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Logo URL</label>
+              <input 
+                name="logoUrl"
+                value={localSettings.logoUrl || ''}
+                onChange={handleChange}
+                placeholder="https://example.com/logo.png"
                 className="w-full border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
               />
             </div>
@@ -218,6 +228,42 @@ const TemplateSettings: React.FC<TemplateSettingsProps> = ({ settings, onUpdateS
                   onClick={() => {
                     const input = document.getElementById('new-pharmacopoeia') as HTMLInputElement;
                     handleAddItem('pharmacopoeias', input.value);
+                    input.value = '';
+                  }}
+                  className="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+
+            {/* Dosage Forms Management */}
+            <div className="space-y-4">
+              <label className="block text-xs font-bold text-slate-400 uppercase mb-2">Dosage Forms (Tablet, Capsule, etc.)</label>
+              <div className="flex flex-wrap gap-2 mb-4">
+                {(localSettings.dosageForms || []).map((df, i) => (
+                  <span key={i} className="bg-amber-50 text-amber-600 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center space-x-2 border border-amber-100">
+                    <span>{df}</span>
+                    <button onClick={() => handleRemoveItem('dosageForms', i)} className="hover:text-amber-800">✕</button>
+                  </span>
+                ))}
+              </div>
+              <div className="flex space-x-2">
+                <input 
+                  id="new-dosage-form"
+                  className="flex-1 border border-slate-200 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="Add new dosage form..."
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleAddItem('dosageForms', (e.target as HTMLInputElement).value);
+                      (e.target as HTMLInputElement).value = '';
+                    }
+                  }}
+                />
+                <button 
+                  onClick={() => {
+                    const input = document.getElementById('new-dosage-form') as HTMLInputElement;
+                    handleAddItem('dosageForms', input.value);
                     input.value = '';
                   }}
                   className="bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold"

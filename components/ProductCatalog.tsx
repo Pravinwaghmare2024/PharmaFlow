@@ -26,7 +26,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
   const [showStockModal, setShowStockModal] = useState<Product | null>(null);
   const [newProduct, setNewProduct] = useState<Partial<Product>>({
     category: settings.categories?.[0] || 'Antibiotics',
-    dosageForm: 'Tablet',
+    dosageForm: settings.dosageForms?.[0] || 'Tablet',
     pharmacopoeia: settings.pharmacopoeias?.[0] || 'IP'
   });
 
@@ -63,7 +63,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
     setShowAddModal(false);
     setNewProduct({ 
       category: settings.categories?.[0] || 'Antibiotics', 
-      dosageForm: 'Tablet',
+      dosageForm: settings.dosageForms?.[0] || 'Tablet',
       pharmacopoeia: settings.pharmacopoeias?.[0] || 'IP'
     });
   };
@@ -313,11 +313,9 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
                     value={newProduct.dosageForm}
                     onChange={e => setNewProduct({...newProduct, dosageForm: e.target.value})}
                   >
-                    <option value="Tablet">Tablet</option>
-                    <option value="Capsule">Capsule</option>
-                    <option value="Injection">Injection</option>
-                    <option value="Syrup">Syrup</option>
-                    <option value="Ointment">Ointment</option>
+                    {(settings.dosageForms || []).map(df => (
+                      <option key={df} value={df}>{df}</option>
+                    ))}
                   </select>
                 </div>
               </div>

@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { Quotation, Comment, Attachment, Inquiry, QuotationItem, CompanySettings, Customer, Product } from '../types';
 import { downloadFile, generateQuotationText } from '../utils/downloadUtils';
 import QuotationPrintable from './QuotationPrintable';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 interface QuotationManagerProps {
   prefillData?: Partial<Inquiry> | null;
@@ -37,7 +39,9 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showQuickAddCustomer, setShowQuickAddCustomer] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [printQuo, setPrintQuo] = useState<Quotation | null>(null);
+  const [pdfQuo, setPdfQuo] = useState<Quotation | null>(null);
 
   // Quick Add Customer State
   const [quickCustomer, setQuickCustomer] = useState<Partial<Customer>>({ type: 'Hospital' });
@@ -80,6 +84,49 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
     setTimeout(() => {
       window.print();
     }, 100);
+  };
+
+  const handleDownloadPDF = async (quo: Quotation) => {
+    setIsGeneratingPDF(true);
+    setPdfQuo(quo);
+    
+    // Wait for React to render the component in the hidden container
+    setTimeout(async () => {
+      const element = document.getElementById('pdf-quotation-content');
+      if (!element) {
+        setIsGeneratingPDF(false);
+        return;
+      }
+
+      try {
+        const canvas = await html2canvas(element, {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#ffffff'
+        });
+        
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+          orientation: 'portrait',
+          unit: 'mm',
+          format: 'a4'
+        });
+        
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        
+        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`${quo.id}_PharmaFlow_Quotation.pdf`);
+      } catch (error) {
+        console.error('PDF Generation Error:', error);
+        alert('Failed to generate PDF. Please try again.');
+      } finally {
+        setIsGeneratingPDF(false);
+        setPdfQuo(null);
+      }
+    }, 500);
   };
 
   const handleAddItem = (productId: string) => {
@@ -234,6 +281,13 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
                 title="Print Quote"
               >
                 🖨️
+              </button>
+              <button 
+                onClick={() => handleDownloadPDF(q)}
+                className="px-3 bg-white border border-slate-200 text-slate-600 py-1.5 rounded-lg text-sm hover:text-rose-600 transition-colors"
+                title="Download PDF"
+              >
+                📕
               </button>
             </div>
           </div>
@@ -418,20 +472,28 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
               </section>
             </div>
 
-            <div className="p-6 border-t border-slate-100 bg-slate-50 flex space-x-4">
+            <div className="p-6 border-t border-slate-100 bg-slate-50 flex flex-wrap gap-4">
               <button 
                 onClick={() => handlePrint(selectedQuo)}
-                className="px-4 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center justify-center"
+                className="px-4 py-3 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center justify-center"
                 title="Print this quotation"
               >
                 🖨️ Print
+              </button>
+              <button 
+                onClick={() => handleDownloadPDF(selectedQuo)}
+                disabled={isGeneratingPDF}
+                className="px-4 py-3 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center justify-center"
+                title="Download as PDF"
+              >
+                {isGeneratingPDF ? '⌛...' : '📕 PDF'}
               </button>
               <button 
                 onClick={() => handleDownload(selectedQuo)}
                 disabled={isDownloading}
                 className="flex-1 py-3 bg-white border border-slate-300 text-slate-700 rounded-xl font-bold text-sm hover:bg-slate-50 transition-all flex items-center justify-center"
               >
-                {isDownloading ? 'Generating...' : '📄 Download Text'}
+                {isDownloading ? 'Generating...' : '📄 Text'}
               </button>
               <button 
                 onClick={() => updateStatus('Approved')}
@@ -510,6 +572,13 @@ const QuotationManager: React.FC<QuotationManagerProps> = ({
       {/* Printable Component (Hidden from UI, visible in print) */}
       {printQuo && (
         <QuotationPrintable quotation={printQuo} settings={settings} />
+      )}
+
+      {/* PDF Generation Container (Hidden from UI) */}
+      {pdfQuo && (
+        <div className="pdf-export-container" id="pdf-quotation-content">
+          <QuotationPrintable quotation={pdfQuo} settings={settings} />
+        </div>
       )}
     </div>
   );
